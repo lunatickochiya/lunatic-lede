@@ -78,6 +78,8 @@ endif
 	$(SED) 's,^# REVISION:=.*,REVISION:=$(REVISION),g' $(PKG_BUILD_DIR)/include/version.mk
 	find $(PKG_BUILD_DIR) -name CVS -o -name .git -o -name .svn \
 	  | $(XARGS) rm -rf
+	$(INSTALL_DIR) $(IB_IDIR)
+	-$(CP) $(STAGING_DIR_IMAGE)/* $(IB_IDIR)/
 	$(INSTALL_DIR) $(PKG_BUILD_DIR)/staging_dir/host/bin
 	$(CP) $(STAGING_DIR_HOST)/bin/* $(PKG_BUILD_DIR)/staging_dir/host/bin/
 	(cd $(PKG_BUILD_DIR); find staging_dir/host/bin/ $(IB_LDIR)/scripts/dtc/ -type f | \
