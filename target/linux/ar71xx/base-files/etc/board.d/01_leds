@@ -799,6 +799,11 @@ zcn-1523h-5)
 	ucidef_set_led_netdev "lan1" "lan1" "zcn-1523h:green:lan1" "eth0"
 	ucidef_set_led_netdev "lan2" "lan2" "zcn-1523h:green:lan2" "eth1"
 	;;
+csac)
+	ucidef_set_led_switch "status" "STATUS" "csac:green:status" "switch0" "0x10"
+	ucidef_set_led_wlan "wlan2g" "WLAN 2.4 GHz" "csac:green:wlan-2g" "phy1tpt"
+	ucidef_set_led_wlan "wlan5g" "WLAN 5 GHz" "csac:green:wlan-5g" "phy0tpt"
+	;;
 esac
 
 board_config_flush
