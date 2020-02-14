@@ -652,6 +652,9 @@ ramips_board_detect() {
 	*"YK1")
 		name="youku-yk1"
 		;;
+	*"Newifi-D2")
+		name="newifi-d2"
+		;;
 	*)
 		name="generic"
 		;;

@@ -114,6 +114,7 @@ get_status_led() {
 	dap-1350|\
 	na930|\
 	pbr-m1|\
+	newifi-d2|\
 	rt-n13u|\
 	rt-n14u|\
 	rt-n15|\

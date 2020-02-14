@@ -18,6 +18,7 @@ platform_check_image() {
 	3g300m|\
 	a5-v11|\
 	ac1200pro|\
+	newifi-d2|\
 	ai-br100|\
 	air3gii|\
 	all0239-3g|\

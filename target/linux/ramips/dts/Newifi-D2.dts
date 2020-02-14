@@ -1,0 +1,164 @@
+// SPDX-License-Identifier: GPL-2.0-or-later OR MIT
+/dts-v1/;
+
+#include "mt7621.dtsi"
+
+#include <dt-bindings/input/input.h>
+
+/ {
+	compatible = "newifi-d2", "mediatek,mt7621-soc";
+	model = "Newifi-D2";
+
+	memory@0 {
+		device_type = "memory";
+		reg = <0x0 0x1c000000>, <0x20000000 0x4000000>;
+	};
+
+	chosen {
+		bootargs = "console=ttyS0,115200";
+	};
+
+	gpio-leds {
+		compatible = "gpio-leds";
+
+		power-amber {
+			label = "newifi-d2:amber:power";
+			gpios = <&gpio0 6 1>;
+		};
+
+		power-blue {
+			label = "newifi-d2:blue:power";
+			gpios = <&gpio0 15 1>;
+		};
+
+		internet-amber {
+			label = "newifi-d2:amber:internet";
+			gpios = <&gpio0 4 1>;
+		};
+
+		internet-blue {
+			label = "newifi-d2:blue:internet";
+			gpios = <&gpio0 13 1>;
+		};
+
+		wlan2g {
+			label = "newifi-d2:blue:wlan2g";
+			gpios = <&gpio0 14 1>;
+		};
+
+		wlan5g {
+			label = "newifi-d2:blue:wlan5g";
+			gpios = <&gpio0 16 1>;
+		};
+
+		usb {
+			label = "newifi-d2:blue:usb";
+			gpios = <&gpio0 10 1>;
+		};
+	};
+
+	gpio-keys-polled {
+		compatible = "gpio-keys-polled";
+		#address-cells = <1>;
+		#size-cells = <0>;
+		poll-interval = <20>;
+
+		reset {
+			label = "reset";
+			gpios = <&gpio0 3 1>;
+			linux,code = <KEY_RESTART>;
+		};
+
+		wps {
+			label = "wps";
+			gpios = <&gpio0 7 1>;
+			linux,code = <KEY_WPS_BUTTON>;
+		};
+	};
+
+	gpio_export {
+		compatible = "gpio-export";
+		#size-cells = <0>;
+
+		power_usb3 {
+			gpio-export,name = "power_usb3";
+			gpio-export,output = <1>;
+			gpios = <&gpio0 11 0>;
+		};
+	};
+};
+
+&spi0 {
+	status = "okay";
+
+	m25p80@0 {
+		compatible = "jedec,spi-nor";
+		reg = <0>;
+		spi-max-frequency = <10000000>;
+		m25p,chunked-io = <32>;
+		m25p,fast-read;
+
+		partitions {
+			compatible = "fixed-partitions";
+			#address-cells = <1>;
+			#size-cells = <1>;
+
+			partition@0 {
+				label = "u-boot";
+				reg = <0x0 0x30000>;
+				read-only;
+			};
+
+			partition@30000 {
+				label = "u-boot-env";
+				reg = <0x30000 0x10000>;
+				read-only;
+			};
+
+			factory: partition@40000 {
+				label = "factory";
+				reg = <0x40000 0x10000>;
+				read-only;
+			};
+
+			partition@50000 {
+				label = "firmware";
+				reg = <0x50000 0x1fb0000>;
+			};
+		};
+	};
+};
+
+&pcie {
+	status = "okay";
+
+	pcie0 {
+		mt76@0,0 {
+			reg = <0x0000 0 0 0 0>;
+			device_type = "pci";
+			mediatek,mtd-eeprom = <&factory 0x8000>;
+			ieee80211-freq-limit = <5000000 6000000>;
+		};
+	};
+
+	pcie1 {
+		mt76@1,0 {
+			reg = <0x0000 0 0 0 0>;
+			device_type = "pci";
+			mediatek,mtd-eeprom = <&factory 0x0000>;
+		};
+	};
+};
+
+&ethernet {
+	mtd-mac-address = <&factory 0xe000>;
+};
+
+&pinctrl {
+	state_default: pinctrl0 {
+		gpio {
+			ralink,group = "i2c", "jtag", "uart2", "uart3";
+			ralink,function = "gpio";
+		};
+	};
+};
