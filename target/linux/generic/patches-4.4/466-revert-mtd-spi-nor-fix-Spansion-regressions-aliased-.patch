@@ -1,0 +1,18 @@
+--- a/drivers/mtd/spi-nor/spi-nor.c
++++ b/drivers/mtd/spi-nor/spi-nor.c
+@@ -1161,6 +1161,7 @@ int spi_nor_scan(struct spi_nor *nor, co
+ 	    JEDEC_MFR(info) == SNOR_MFR_INTEL ||
+ 	    JEDEC_MFR(info) == SNOR_MFR_MACRONIX ||
+ 	    JEDEC_MFR(info) == SNOR_MFR_SST ||
++	    JEDEC_MFR(info) == SNOR_MFR_WINBOND ||
+ 	    info->flags & SPI_NOR_HAS_LOCK) {
+ 		write_enable(nor);
+ 		write_sr(nor, 0);
+@@ -1178,6 +1179,7 @@ int spi_nor_scan(struct spi_nor *nor, co
+ 
+ 	/* NOR protection support for STmicro/Micron chips and similar */
+ 	if (JEDEC_MFR(info) == SNOR_MFR_MICRON ||
++	    JEDEC_MFR(info) == SNOR_MFR_WINBOND ||
+ 		info->flags & SPI_NOR_HAS_LOCK) {
+ 		nor->flash_lock = stm_lock;
+ 		nor->flash_unlock = stm_unlock;
