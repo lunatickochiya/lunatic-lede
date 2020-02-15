@@ -83,7 +83,8 @@ define Device/newifi-d1
   DTS := Newifi-D1
   IMAGE_SIZE := $(ralink_default_fw_size_32M)
   DEVICE_TITLE := Newifi D1
-  DEVICE_PACKAGES := kmod-usb3 kmod-usb-ledtrig-usbport
+  DEVICE_PACKAGES := \
+	kmod-mt7603 kmod-mt76x2 kmod-usb3 kmod-usb-ledtrig-usbport kmod-ata-core kmod-ata-ahci kmod-ata-marvell-sata
 endef
 TARGET_DEVICES += newifi-d1
 
@@ -92,9 +93,18 @@ define Device/newifi-d2
   IMAGE_SIZE := $(ralink_default_fw_size_32M)
   DEVICE_TITLE := Newifi D2
   DEVICE_PACKAGES := \
-	kmod-mt7603 kmod-mt76x2 kmod-usb3 kmod-usb-ledtrig-usbport
+	kmod-mt7603 kmod-mt76x2 kmod-usb3 kmod-usb-ledtrig-usbport kmod-ata-core kmod-ata-ahci kmod-ata-marvell-sata
 endef
 TARGET_DEVICES += newifi-d2
+
+define Device/ghl-r-001
+  DTS := GHL-R-001
+  IMAGE_SIZE := $(ralink_default_fw_size_32M)
+  DEVICE_TITLE := GHL-R-001
+  DEVICE_PACKAGES := \
+	kmod-usb3 kmod-usb-ledtrig-usbport kmod-mt7603 kmod-mt76x2 kmod-ata-core kmod-ata-ahci kmod-ata-marvell-sata
+endef
+TARGET_DEVICES += ghl-r-001
 
 define Device/pbr-m1
   DTS := PBR-M1

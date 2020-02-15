@@ -19,6 +19,7 @@ platform_check_image() {
 	a5-v11|\
 	ac1200pro|\
 	newifi-d2|\
+	ghl-r-001|\
 	ai-br100|\
 	air3gii|\
 	all0239-3g|\

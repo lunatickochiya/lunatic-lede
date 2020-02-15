@@ -655,6 +655,9 @@ ramips_board_detect() {
 	*"Newifi-D2")
 		name="newifi-d2"
 		;;
+	*"GHL-R-001")
+		name="ghl-r-001"
+		;;
 	*)
 		name="generic"
 		;;
