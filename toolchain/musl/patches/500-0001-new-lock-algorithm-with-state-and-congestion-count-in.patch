@@ -1,0 +1,143 @@
+From 47d0bcd4762f223364e5b58d5a381aaa0cbd7c38 Mon Sep 17 00:00:00 2001
+From: Jens Gustedt <Jens.Gustedt@inria.fr>
+Date: Wed, 3 Jan 2018 14:17:12 +0100
+Subject: new lock algorithm with state and congestion count in one atomic int
+
+A variant of this new lock algorithm has been presented at SAC'16, see
+https://hal.inria.fr/hal-01304108. A full version of that paper is
+available at https://hal.inria.fr/hal-01236734.
+
+The main motivation of this is to improve on the safety of the basic lock
+implementation in musl. This is achieved by squeezing a lock flag and a
+congestion count (= threads inside the critical section) into a single
+int. Thereby an unlock operation does exactly one memory
+transfer (a_fetch_add) and never touches the value again, but still
+detects if a waiter has to be woken up.
+
+This is a fix of a use-after-free bug in pthread_detach that had
+temporarily been patched. Therefore this patch also reverts
+
+         c1e27367a9b26b9baac0f37a12349fc36567c8b6
+
+This is also the only place where internal knowledge of the lock
+algorithm is used.
+
+The main price for the improved safety is a little bit larger code.
+
+Under high congestion, the scheduling behavior will be different
+compared to the previous algorithm. In that case, a successful
+put-to-sleep may appear out of order compared to the arrival in the
+critical section.
+---
+ src/internal/pthread_impl.h |  6 +++++
+ src/thread/__lock.c         | 55 ++++++++++++++++++++++++++++++++++++++++-----
+ src/thread/pthread_detach.c |  5 ++---
+ 3 files changed, 58 insertions(+), 8 deletions(-)
+
+diff --git a/src/internal/pthread_impl.h b/src/internal/pthread_impl.h
+index 56e19348..602d6f56 100644
+--- a/src/internal/pthread_impl.h
++++ b/src/internal/pthread_impl.h
+@@ -136,6 +136,12 @@ static inline void __wake(volatile void *addr, int cnt, int priv)
+ 	__syscall(SYS_futex, addr, FUTEX_WAKE|priv, cnt) != -ENOSYS ||
+ 	__syscall(SYS_futex, addr, FUTEX_WAKE, cnt);
+ }
++static inline void __futexwait(volatile void *addr, int val, int priv)
++{
++	if (priv) priv = FUTEX_PRIVATE;
++	__syscall(SYS_futex, addr, FUTEX_WAIT|priv, val) != -ENOSYS ||
++	__syscall(SYS_futex, addr, FUTEX_WAIT, val);
++}
+ 
+ void __acquire_ptc(void);
+ void __release_ptc(void);
+diff --git a/src/thread/__lock.c b/src/thread/__lock.c
+index 0874c04a..45557c88 100644
+--- a/src/thread/__lock.c
++++ b/src/thread/__lock.c
+@@ -1,15 +1,60 @@
+ #include "pthread_impl.h"
+ 
++/* This lock primitive combines a flag (in the sign bit) and a
++ * congestion count (= threads inside the critical section, CS) in a
++ * single int that is accessed through atomic operations. The states
++ * of the int for value x are:
++ *
++ * x == 0: unlocked and no thread inside the critical section
++ *
++ * x < 0: locked with a congestion of x-INT_MIN, including the thread
++ * that holds the lock
++ *
++ * x > 0: unlocked with a congestion of x
++ *
++ * or in an equivalent formulation x is the congestion count or'ed
++ * with INT_MIN as a lock flag.
++ */
++
+ void __lock(volatile int *l)
+ {
+-	if (libc.threads_minus_1)
+-		while (a_swap(l, 1)) __wait(l, l+1, 1, 1);
++	if (!libc.threads_minus_1) return;
++	/* fast path: INT_MIN for the lock, +1 for the congestion */
++	int current = a_cas(l, 0, INT_MIN + 1);
++	if (!current) return;
++	/* A first spin loop, for medium congestion. */
++	for (unsigned i = 0; i < 10; ++i) {
++		if (current < 0) current -= INT_MIN + 1;
++		// assertion: current >= 0
++		int val = a_cas(l, current, INT_MIN + (current + 1));
++		if (val == current) return;
++		current = val;
++	}
++	// Spinning failed, so mark ourselves as being inside the CS.
++	current = a_fetch_add(l, 1) + 1;
++	/* The main lock acquisition loop for heavy congestion. The only
++	 * change to the value performed inside that loop is a successful
++	 * lock via the CAS that acquires the lock. */
++	for (;;) {
++		/* We can only go into wait, if we know that somebody holds the
++		 * lock and will eventually wake us up, again. */
++		if (current < 0) {
++			__futexwait(l, current, 1);
++			current -= INT_MIN + 1;
++		}
++		/* assertion: current > 0, the count includes us already. */
++		int val = a_cas(l, current, INT_MIN + current);
++		if (val == current) return;
++		current = val;
++	}
+ }
+ 
+ void __unlock(volatile int *l)
+ {
+-	if (l[0]) {
+-		a_store(l, 0);
+-		if (l[1]) __wake(l, 1, 1);
++	/* Check l[0] to see if we are multi-threaded. */
++	if (l[0] < 0) {
++		if (a_fetch_add(l, -(INT_MIN + 1)) != (INT_MIN + 1)) {
++			__wake(l, 1, 1);
++		}
+ 	}
+ }
+diff --git a/src/thread/pthread_detach.c b/src/thread/pthread_detach.c
+index 13482607..d9c90d1c 100644
+--- a/src/thread/pthread_detach.c
++++ b/src/thread/pthread_detach.c
+@@ -6,11 +6,10 @@ int __pthread_join(pthread_t, void **);
+ static int __pthread_detach(pthread_t t)
+ {
+ 	/* Cannot detach a thread that's already exiting */
+-	if (a_swap(t->exitlock, 1))
++	if (a_cas(t->exitlock, 0, INT_MIN + 1))
+ 		return __pthread_join(t, 0);
+ 	t->detached = 2;
+-	a_store(t->exitlock, 0);
+-	__wake(t->exitlock, 1, 1);
++	__unlock(t->exitlock);
+ 	return 0;
+ }
+ 
+-- 
+cgit v1.2.1
