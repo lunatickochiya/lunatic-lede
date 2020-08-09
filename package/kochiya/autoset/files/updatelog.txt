@@ -1,0 +1,38 @@
+升级日志：
+2019.09.29
+1.添加eqos
+2.默认关闭samba
+3.优化配置
+4.默认关闭SFE
+2019.09.30
+1.sqm添加中文
+2.添加aria2和ariang管理端
+3.添加filebrowser（无主程序） 主程序太大了 
+4.增加了FPU模拟
+2019.10.07
+1.修复一些BUG
+2.自编译filebrowser 采用最新源码 可以在pan.52mss.cn 下载  mips对应ar71xx 也就是CSAC mipsel对应mtk机器 uclibc的是chaos calmer的ar71xx专用
+3.增加 ssr plus 支持内存运行v2ray 也可以自定义目录使用 采用kuoruan的makefile编译 只有3.4M（闪存小的机器的福音）  
+2019.10.10 final
+1.修复ssr和网易云的兼容性BUG
+2.去掉dnsfowarder
+3.汉化ssr的部分新增内容
+4.ssr支持查看网络延迟
+2019.11.02 final
+1.移除ipv6 默认开启sfe
+
+
+
+
+使用说明：
+
+https://www.right.com.cn/forum/thread-502440-1-1.html
+
+关于samba挂载务必重启一下才能保证挂稳，因为openwrt系统要知道你的硬盘uuid后再挂载，
+挂载后无法删除文件或者提示权限不足，首先来说匿名访问你的服务器肯定权限受限，试想你的电脑被匿名访问后然后被删除文件这电脑系统是有多差劲？！  
+关于权限这个问题可以通过samba设置帐号密码解决权限不足问题，“合法”管理者才能有权限删除电脑的文件，对不？那些挂上去的就可以任意删除文件有多危险，自己考虑。
+
+
+关于filebrowser 挂载U盘后可以拷贝程序到U盘运行 文件名filebrowser 到挂载U盘赋予程序可执行权限 chmod +x filebrowser
+
+使用中遇到问题可以加群咨询。
