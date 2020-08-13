@@ -3,6 +3,11 @@
 源码更新交流学习：点击链接加入群聊 ：https://jq.qq.com/?_wv=1027&k=5QgVYsC  
 群号： 286754582
 
+todo
+1.mac80211 update to 19.07
+2.hostapd update to 20190808 support mesh sae(luci)
+3.openssl update to 1.1.1g and some package feat with 1.1.1
+
 This is the buildsystem for the LEDE Linux distribution.
 
 Please use "make menuconfig" to choose your preferred
