@@ -4,13 +4,11 @@ PKG_NAME:=ustream-ssl
 PKG_RELEASE:=1
 
 PKG_SOURCE_PROTO:=git
-PKG_SOURCE_URL=$(LEDE_GIT)/project/ustream-ssl.git
-PKG_SOURCE_DATE:=2018-05-22
-PKG_SOURCE_VERSION:=5322f9db23b69fdc2b4760a6cfd67848a11818a4
-PKG_MIRROR_HASH:=c943f6e603b1309b33fd276acddffb33a171b6370455b6c21200897012e42d05
+PKG_SOURCE_URL=$(PROJECT_GIT)/project/ustream-ssl.git
+PKG_SOURCE_DATE:=2020-03-13
+PKG_SOURCE_VERSION:=40b563b1ea89dabb2b6cd90644908134a0c8eff2
+PKG_MIRROR_HASH:=db562c9919b4045c7b735c935b0a93983686b827ec4d537e8aa875c7e6df21a1
 CMAKE_INSTALL:=1
-
-PKG_BUILD_DIR=$(BUILD_DIR)/$(PKG_NAME)-$(BUILD_VARIANT)/$(PKG_SOURCE_SUBDIR)
 
 PKG_LICENSE:=ISC
 PKG_LICENSE_FILES:=
@@ -25,7 +23,7 @@ define Package/libustream/default
   CATEGORY:=Libraries
   TITLE:=ustream SSL Library
   DEPENDS:=+libubox
-  ABI_VERSION:=$(PKG_VERSION)
+  ABI_VERSION:=20150806
 endef
 
 define Package/libustream-openssl
@@ -35,11 +33,11 @@ define Package/libustream-openssl
   VARIANT:=openssl
 endef
 
-define Package/libustream-cyassl
+define Package/libustream-wolfssl
   $(Package/libustream/default)
-  TITLE += (cyassl)
-  DEPENDS += +PACKAGE_libustream-cyassl:libcyassl
-  VARIANT:=cyassl
+  TITLE += (wolfssl)
+  DEPENDS += +PACKAGE_libustream-wolfssl:libwolfssl
+  VARIANT:=wolfssl
 endef
 
 define Package/libustream-mbedtls
@@ -50,9 +48,9 @@ define Package/libustream-mbedtls
   DEFAULT_VARIANT:=1
 endef
 
-ifeq ($(BUILD_VARIANT),cyassl)
-  TARGET_CFLAGS += -I$(STAGING_DIR)/usr/include/cyassl -DHAVE_SNI
-  CMAKE_OPTIONS += -DCYASSL=on
+ifeq ($(BUILD_VARIANT),wolfssl)
+  TARGET_CFLAGS += -I$(STAGING_DIR)/usr/include/wolfssl
+  CMAKE_OPTIONS += -DWOLFSSL=on
 endif
 ifeq ($(BUILD_VARIANT),mbedtls)
   CMAKE_OPTIONS += -DMBEDTLS=on
@@ -64,9 +62,9 @@ define Package/libustream/default/install
 endef
 
 Package/libustream-openssl/install = $(Package/libustream/default/install)
-Package/libustream-cyassl/install = $(Package/libustream/default/install)
+Package/libustream-wolfssl/install = $(Package/libustream/default/install)
 Package/libustream-mbedtls/install = $(Package/libustream/default/install)
 
 $(eval $(call BuildPackage,libustream-mbedtls))
-$(eval $(call BuildPackage,libustream-cyassl))
+$(eval $(call BuildPackage,libustream-wolfssl))
 $(eval $(call BuildPackage,libustream-openssl))
