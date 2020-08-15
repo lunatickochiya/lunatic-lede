@@ -1,0 +1,104 @@
+From patchwork Tue Aug 29 15:50:11 2017
+Content-Type: text/plain; charset="utf-8"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+X-Patchwork-Submitter: Bart Van Assche <bart.vanassche@wdc.com>
+X-Patchwork-Id: 9927667
+Return-Path: <linux-scsi-owner@kernel.org>
+Received: from mail.wl.linuxfoundation.org (pdx-wl-mail.web.codeaurora.org
+	[172.30.200.125])
+	by pdx-korg-patchwork.web.codeaurora.org (Postfix) with ESMTP id
+	1295260383 for <patchwork-linux-scsi@patchwork.kernel.org>;
+	Tue, 29 Aug 2017 15:52:24 +0000 (UTC)
+Received: from mail.wl.linuxfoundation.org (localhost [127.0.0.1])
+	by mail.wl.linuxfoundation.org (Postfix) with ESMTP id 02D03289FB
+	for <patchwork-linux-scsi@patchwork.kernel.org>;
+	Tue, 29 Aug 2017 15:52:24 +0000 (UTC)
+Received: by mail.wl.linuxfoundation.org (Postfix, from userid 486)
+	id 011352898D; Tue, 29 Aug 2017 15:52:23 +0000 (UTC)
+X-Spam-Checker-Version: SpamAssassin 3.3.1 (2010-03-16) on
+	pdx-wl-mail.web.codeaurora.org
+X-Spam-Level: 
+X-Spam-Status: No, score=-6.9 required=2.0 tests=BAYES_00,RCVD_IN_DNSWL_HI
+	autolearn=ham version=3.3.1
+Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
+	by mail.wl.linuxfoundation.org (Postfix) with ESMTP id 437AC289F0
+	for <patchwork-linux-scsi@patchwork.kernel.org>;
+	Tue, 29 Aug 2017 15:51:31 +0000 (UTC)
+Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
+	id S1752791AbdH2Pva (ORCPT
+	<rfc822;patchwork-linux-scsi@patchwork.kernel.org>);
+	Tue, 29 Aug 2017 11:51:30 -0400
+Received: from esa3.hgst.iphmx.com ([216.71.153.141]:9012 "EHLO
+	esa3.hgst.iphmx.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751867AbdH2Pva (ORCPT
+	<rfc822; linux-scsi@vger.kernel.org>); Tue, 29 Aug 2017 11:51:30 -0400
+X-IronPort-AV: E=Sophos;i="5.41,445,1498492800"; d="scan'208";a="46310640"
+Received: from sjappemgw11.hgst.com (HELO sjappemgw12.hgst.com)
+	([199.255.44.62])
+	by ob1.hgst.iphmx.com with ESMTP; 29 Aug 2017 23:50:14 +0800
+Received: from thinkpad-bart.sdcorp.global.sandisk.com (HELO
+	thinkpad-bart.int.fusionio.com) ([10.11.172.152])
+	by sjappemgw12.hgst.com with ESMTP; 29 Aug 2017 08:50:13 -0700
+From: Bart Van Assche <bart.vanassche@wdc.com>
+To: "Martin K . Petersen" <martin.petersen@oracle.com>,
+	"James E . J . Bottomley" <jejb@linux.vnet.ibm.com>
+Cc: linux-scsi@vger.kernel.org,
+	"Paul E . McKenney" <paulmck@linux.vnet.ibm.com>,
+	Bart Van Assche <bart.vanassche@wdc.com>,
+	Christoph Hellwig <hch@lst.de>, Hannes Reinecke <hare@suse.de>,
+	Johannes Thumshirn <jthumshirn@suse.de>,
+	Shane M Seymour <shane.seymour@hpe.com>
+Subject: [PATCH v4 1/3] rcu: Introduce rcu_swap_protected()
+Date: Tue, 29 Aug 2017 08:50:11 -0700
+Message-Id: <20170829155013.11124-2-bart.vanassche@wdc.com>
+X-Mailer: git-send-email 2.14.1
+In-Reply-To: <20170829155013.11124-1-bart.vanassche@wdc.com>
+References: <20170829155013.11124-1-bart.vanassche@wdc.com>
+Sender: linux-scsi-owner@vger.kernel.org
+Precedence: bulk
+List-ID: <linux-scsi.vger.kernel.org>
+X-Mailing-List: linux-scsi@vger.kernel.org
+X-Virus-Scanned: ClamAV using ClamSMTP
+
+A common pattern in RCU code is to assign a new value to an RCU
+pointer after having read and stored the old value. Introduce a
+macro for this pattern.
+
+Signed-off-by: Bart Van Assche <bart.vanassche@wdc.com>
+Acked-by: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Hannes Reinecke <hare@suse.de>
+Cc: Johannes Thumshirn <jthumshirn@suse.de>
+Cc: Shane M Seymour <shane.seymour@hpe.com>
+---
+ include/linux/rcupdate.h | 16 ++++++++++++++++
+ 1 file changed, 16 insertions(+)
+
+diff --git a/include/linux/rcupdate.h b/include/linux/rcupdate.h
+index f816fc72b51e..8e920f0ecb07 100644
+--- a/include/linux/rcupdate.h
++++ b/include/linux/rcupdate.h
+@@ -407,6 +407,22 @@ static inline void rcu_preempt_sleep_check(void) { }
+ 	_r_a_p__v;							      \
+ })
+ 
++/**
++ * rcu_swap_protected() - swap an RCU and a regular pointer
++ * @rcu_ptr: RCU pointer
++ * @ptr: regular pointer
++ * @c: the conditions under which the dereference will take place
++ *
++ * Perform swap(@rcu_ptr, @ptr) where @rcu_ptr is an RCU-annotated pointer and
++ * @c is the argument that is passed to the rcu_dereference_protected() call
++ * used to read that pointer.
++ */
++#define rcu_swap_protected(rcu_ptr, ptr, c) do {			\
++	typeof(ptr) __tmp = rcu_dereference_protected((rcu_ptr), (c));	\
++	rcu_assign_pointer((rcu_ptr), (ptr));				\
++	(ptr) = __tmp;							\
++} while (0)
++
+ /**
+  * rcu_access_pointer() - fetch RCU pointer with no dereferencing
+  * @p: The pointer to read

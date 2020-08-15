@@ -1,0 +1,121 @@
+From patchwork Thu Sep 17 19:02:09 2015
+Content-Type: text/plain; charset="utf-8"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+X-Patchwork-Submitter: Stephen Boyd <sboyd@codeaurora.org>
+X-Patchwork-Id: 7209971
+X-Patchwork-Delegate: agross@codeaurora.org
+Return-Path: <linux-arm-msm-owner@kernel.org>
+X-Original-To: patchwork-linux-arm-msm@patchwork.kernel.org
+Delivered-To: patchwork-parsemail@patchwork2.web.kernel.org
+Received: from mail.kernel.org (mail.kernel.org [198.145.29.136])
+	by patchwork2.web.kernel.org (Postfix) with ESMTP id A2DDDBEEC1
+	for <patchwork-linux-arm-msm@patchwork.kernel.org>;
+	Thu, 17 Sep 2015 19:03:46 +0000 (UTC)
+Received: from mail.kernel.org (localhost [127.0.0.1])
+	by mail.kernel.org (Postfix) with ESMTP id CF0E62078F
+	for <patchwork-linux-arm-msm@patchwork.kernel.org>;
+	Thu, 17 Sep 2015 19:03:45 +0000 (UTC)
+Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
+	by mail.kernel.org (Postfix) with ESMTP id E88EC20788
+	for <patchwork-linux-arm-msm@patchwork.kernel.org>;
+	Thu, 17 Sep 2015 19:03:44 +0000 (UTC)
+Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
+	id S1751907AbbIQTCT (ORCPT
+	<rfc822;patchwork-linux-arm-msm@patchwork.kernel.org>);
+	Thu, 17 Sep 2015 15:02:19 -0400
+Received: from smtp.codeaurora.org ([198.145.29.96]:36007 "EHLO
+	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751797AbbIQTCO (ORCPT
+	<rfc822;linux-arm-msm@vger.kernel.org>);
+	Thu, 17 Sep 2015 15:02:14 -0400
+Received: from smtp.codeaurora.org (localhost [127.0.0.1])
+	by smtp.codeaurora.org (Postfix) with ESMTP id 3290D1415AD;
+	Thu, 17 Sep 2015 19:02:14 +0000 (UTC)
+Received: by smtp.codeaurora.org (Postfix, from userid 486)
+	id 230E81415C6; Thu, 17 Sep 2015 19:02:14 +0000 (UTC)
+X-Spam-Checker-Version: SpamAssassin 3.3.1 (2010-03-16) on mail.kernel.org
+X-Spam-Level: 
+X-Spam-Status: No, score=-6.9 required=5.0 tests=BAYES_00, RCVD_IN_DNSWL_HI,
+	T_RP_MATCHES_RCVD,
+	UNPARSEABLE_RELAY autolearn=unavailable version=3.3.1
+Received: from sboyd-linux.qualcomm.com (i-global254.qualcomm.com
+	[199.106.103.254])
+	(using TLSv1.1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
+	(No client certificate requested)
+	(Authenticated sender: sboyd@smtp.codeaurora.org)
+	by smtp.codeaurora.org (Postfix) with ESMTPSA id 74DA21415AD;
+	Thu, 17 Sep 2015 19:02:13 +0000 (UTC)
+From: Stephen Boyd <sboyd@codeaurora.org>
+To: Andy Gross <agross@codeaurora.org>
+Cc: linux-kernel@vger.kernel.org, linux-arm-msm@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Bjorn Andersson <bjorn.andersson@sonymobile.com>
+Subject: [PATCH v2 1/3] lib: iomap_copy: Add __ioread32_copy()
+Date: Thu, 17 Sep 2015 12:02:09 -0700
+Message-Id: <1442516531-16071-2-git-send-email-sboyd@codeaurora.org>
+X-Mailer: git-send-email 2.6.0.rc2.11.g3da0120
+In-Reply-To: <1442516531-16071-1-git-send-email-sboyd@codeaurora.org>
+References: <1442516531-16071-1-git-send-email-sboyd@codeaurora.org>
+X-Virus-Scanned: ClamAV using ClamSMTP
+Sender: linux-arm-msm-owner@vger.kernel.org
+Precedence: bulk
+List-ID: <linux-arm-msm.vger.kernel.org>
+X-Mailing-List: linux-arm-msm@vger.kernel.org
+X-Virus-Scanned: ClamAV using ClamSMTP
+
+Some drivers need to read data out of iomem areas 32-bits at a
+time. Add an API to do this.
+
+Cc: Bjorn Andersson <bjorn.andersson@sonymobile.com>
+Signed-off-by: Stephen Boyd <sboyd@codeaurora.org>
+---
+ include/linux/io.h |  1 +
+ lib/iomap_copy.c   | 21 +++++++++++++++++++++
+ 2 files changed, 22 insertions(+)
+
+diff --git a/include/linux/io.h b/include/linux/io.h
+index de64c1e53612..72c35e0a41d1 100644
+--- a/include/linux/io.h
++++ b/include/linux/io.h
+@@ -29,6 +29,7 @@ struct device;
+ struct resource;
+ 
+ __visible void __iowrite32_copy(void __iomem *to, const void *from, size_t count);
++void __ioread32_copy(void *to, const void __iomem *from, size_t count);
+ void __iowrite64_copy(void __iomem *to, const void *from, size_t count);
+ 
+ #ifdef CONFIG_MMU
+diff --git a/lib/iomap_copy.c b/lib/iomap_copy.c
+index 4527e751b5e0..b8f1d6cbb200 100644
+--- a/lib/iomap_copy.c
++++ b/lib/iomap_copy.c
+@@ -42,6 +42,27 @@ void __attribute__((weak)) __iowrite32_copy(void __iomem *to,
+ EXPORT_SYMBOL_GPL(__iowrite32_copy);
+ 
+ /**
++ * __ioread32_copy - copy data from MMIO space, in 32-bit units
++ * @to: destination (must be 32-bit aligned)
++ * @from: source, in MMIO space (must be 32-bit aligned)
++ * @count: number of 32-bit quantities to copy
++ *
++ * Copy data from MMIO space to kernel space, in units of 32 bits at a
++ * time.  Order of access is not guaranteed, nor is a memory barrier
++ * performed afterwards.
++ */
++void __ioread32_copy(void *to, const void __iomem *from, size_t count)
++{
++	u32 *dst = to;
++	const u32 __iomem *src = from;
++	const u32 __iomem *end = src + count;
++
++	while (src < end)
++		*dst++ = __raw_readl(src++);
++}
++EXPORT_SYMBOL_GPL(__ioread32_copy);
++
++/**
+  * __iowrite64_copy - copy data to MMIO space, in 64-bit or 32-bit units
+  * @to: destination, in MMIO space (must be 64-bit aligned)
+  * @from: source (must be 64-bit aligned)
