@@ -1,7 +1,6 @@
 基于lede EOL版本制作 测试环境 ar71xx ramips
 
-源码更新交流学习：点击链接加入群聊 ：https://jq.qq.com/?_wv=1027&k=5QgVYsC  
-群号： 286754582
+
 
 now what i have?
 1.gargoyle and luci
@@ -9,14 +8,22 @@ now what i have?
 3.boost supported
 4.sfe supported
 5.fullcone supported
+6.mac80211 and mt76 update to 19.07
+7.hostapd update to 20190808 support mesh sae(luci)
+8.openssl update to 1.1.1g and some package feat with 1.1.1
+9.updated build system speedup building
 
+源码更新交流学习：[点击链接加入群聊](https://jq.qq.com/?_wv=1027&k=5QgVYsC)
+群号： 286754582
+注意：你可以自由使用本套源码编译，但源码编译二次发布请注明我的 GitHub 仓库链接。谢谢合作！
 
-
-todo
-1.mac80211 and mt76 update to 19.07
-2.hostapd update to 20190808 support mesh sae(luci)
-3.openssl update to 1.1.1g and some package feat with 1.1.1
-
+  _______                     ________        __
+ |       |.-----.-----.-----.|  |  |  |.----.|  |_
+ |   -   ||  _  |  -__|     ||  |  |  ||   _||   _|
+ |_______||   __|_____|__|__||________||__|  |____|
+          |__| W I R E L E S S   F R E E D O M
+ -----------------------------------------------------
+ 
 This is the buildsystem for the LEDE Linux distribution.
 
 Please use "make menuconfig" to choose your preferred
