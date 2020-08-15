@@ -1,0 +1,12 @@
+diff --git a/include/linux/ath9k_platform.h b/include/linux/ath9k_platform.h
+index 30ce216..558445f 100644
+--- a/include/linux/ath9k_platform.h
++++ b/include/linux/ath9k_platform.h
+@@ -49,6 +49,7 @@
+ 
+ 	int num_leds;
+ 	const struct gpio_led *leds;
++	const char *led_name;
+ 
+ 	unsigned num_btns;
+ 	const struct gpio_keys_button *btns;
