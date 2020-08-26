@@ -1,6 +1,6 @@
 --- a/include/net/ip6_route.h
 +++ b/include/net/ip6_route.h
-@@ -82,7 +82,7 @@ int ip6_route_get_saddr(struct net *net, struct rt6_info *rt,
+@@ -92,7 +92,7 @@ int ip6_route_get_saddr(struct net *net,
  			const struct in6_addr *daddr, unsigned int prefs,
  			struct in6_addr *saddr);
  

@@ -75,8 +75,6 @@ Signed-off-by: Stephen Boyd <sboyd@codeaurora.org>
  lib/iomap_copy.c   | 21 +++++++++++++++++++++
  2 files changed, 22 insertions(+)
 
-diff --git a/include/linux/io.h b/include/linux/io.h
-index de64c1e53612..72c35e0a41d1 100644
 --- a/include/linux/io.h
 +++ b/include/linux/io.h
 @@ -29,6 +29,7 @@ struct device;
@@ -87,11 +85,9 @@ index de64c1e53612..72c35e0a41d1 100644
  void __iowrite64_copy(void __iomem *to, const void *from, size_t count);
  
  #ifdef CONFIG_MMU
-diff --git a/lib/iomap_copy.c b/lib/iomap_copy.c
-index 4527e751b5e0..b8f1d6cbb200 100644
 --- a/lib/iomap_copy.c
 +++ b/lib/iomap_copy.c
-@@ -42,6 +42,27 @@ void __attribute__((weak)) __iowrite32_copy(void __iomem *to,
+@@ -42,6 +42,27 @@ void __attribute__((weak)) __iowrite32_c
  EXPORT_SYMBOL_GPL(__iowrite32_copy);
  
  /**

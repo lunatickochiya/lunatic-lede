@@ -23,7 +23,7 @@ Tested-by: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
 
 --- a/drivers/mtd/spi-nor/spi-nor.c
 +++ b/drivers/mtd/spi-nor/spi-nor.c
-@@ -1169,6 +1169,7 @@ int spi_nor_scan(struct spi_nor *nor, co
+@@ -1182,6 +1182,7 @@ int spi_nor_scan(struct spi_nor *nor, co
  	    info->flags & SPI_NOR_HAS_LOCK) {
  		write_enable(nor);
  		write_sr(nor, 0);

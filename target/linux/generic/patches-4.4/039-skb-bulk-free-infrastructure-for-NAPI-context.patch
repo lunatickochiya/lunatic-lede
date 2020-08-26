@@ -36,11 +36,9 @@ Signed-off-by: David S. Miller <davem@davemloft.net>
  net/core/skbuff.c      | 83 ++++++++++++++++++++++++++++++++++++++++++++++----
  3 files changed, 81 insertions(+), 6 deletions(-)
 
-diff --git a/include/linux/skbuff.h b/include/linux/skbuff.h
-index a8fc222..b56c010 100644
 --- a/include/linux/skbuff.h
 +++ b/include/linux/skbuff.h
-@@ -2404,6 +2404,9 @@ static inline struct sk_buff *napi_alloc_skb(struct napi_struct *napi,
+@@ -2347,6 +2347,9 @@ static inline struct sk_buff *napi_alloc
  {
  	return __napi_alloc_skb(napi, length, GFP_ATOMIC);
  }
@@ -50,11 +48,9 @@ index a8fc222..b56c010 100644
  
  /**
   * __dev_alloc_pages - allocate page for network Rx
-diff --git a/net/core/dev.c b/net/core/dev.c
-index f128483..9b2c7a9 100644
 --- a/net/core/dev.c
 +++ b/net/core/dev.c
-@@ -5155,6 +5155,7 @@ static void net_rx_action(struct softirq_action *h)
+@@ -4987,6 +4987,7 @@ static void net_rx_action(struct softirq
  		}
  	}
  
@@ -62,11 +58,9 @@ index f128483..9b2c7a9 100644
  	local_irq_disable();
  
  	list_splice_tail_init(&sd->poll_list, &list);
-diff --git a/net/core/skbuff.c b/net/core/skbuff.c
-index b0cce74..b64187b 100644
 --- a/net/core/skbuff.c
 +++ b/net/core/skbuff.c
-@@ -347,8 +347,16 @@ struct sk_buff *build_skb(void *data, unsigned int frag_size)
+@@ -349,8 +349,16 @@ struct sk_buff *build_skb(void *data, un
  }
  EXPORT_SYMBOL(build_skb);
  
@@ -84,7 +78,7 @@ index b0cce74..b64187b 100644
  
  static void *__netdev_alloc_frag(unsigned int fragsz, gfp_t gfp_mask)
  {
-@@ -378,9 +386,9 @@ EXPORT_SYMBOL(netdev_alloc_frag);
+@@ -382,9 +390,9 @@ EXPORT_SYMBOL(netdev_alloc_frag);
  
  static void *__napi_alloc_frag(unsigned int fragsz, gfp_t gfp_mask)
  {
@@ -96,7 +90,7 @@ index b0cce74..b64187b 100644
  }
  
  void *napi_alloc_frag(unsigned int fragsz)
-@@ -474,7 +482,7 @@ EXPORT_SYMBOL(__netdev_alloc_skb);
+@@ -480,7 +488,7 @@ EXPORT_SYMBOL(__netdev_alloc_skb);
  struct sk_buff *__napi_alloc_skb(struct napi_struct *napi, unsigned int len,
  				 gfp_t gfp_mask)
  {
@@ -105,7 +99,7 @@ index b0cce74..b64187b 100644
  	struct sk_buff *skb;
  	void *data;
  
-@@ -494,7 +502,7 @@ struct sk_buff *__napi_alloc_skb(struct napi_struct *napi, unsigned int len,
+@@ -500,7 +508,7 @@ struct sk_buff *__napi_alloc_skb(struct
  	if (sk_memalloc_socks())
  		gfp_mask |= __GFP_MEMALLOC;
  
@@ -114,7 +108,7 @@ index b0cce74..b64187b 100644
  	if (unlikely(!data))
  		return NULL;
  
-@@ -505,7 +513,7 @@ struct sk_buff *__napi_alloc_skb(struct napi_struct *napi, unsigned int len,
+@@ -511,7 +519,7 @@ struct sk_buff *__napi_alloc_skb(struct
  	}
  
  	/* use OR instead of assignment to avoid clearing of bits in mask */
@@ -123,7 +117,7 @@ index b0cce74..b64187b 100644
  		skb->pfmemalloc = 1;
  	skb->head_frag = 1;
  
-@@ -747,6 +755,69 @@ void consume_skb(struct sk_buff *skb)
+@@ -753,6 +761,69 @@ void consume_skb(struct sk_buff *skb)
  }
  EXPORT_SYMBOL(consume_skb);
  
@@ -193,5 +187,3 @@ index b0cce74..b64187b 100644
  /* Make sure a field is enclosed inside headers_start/headers_end section */
  #define CHECK_SKB_FIELD(field) \
  	BUILD_BUG_ON(offsetof(struct sk_buff, field) <		\
--- 
-cgit v1.1

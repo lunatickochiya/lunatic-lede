@@ -1060,7 +1060,7 @@
 +
 --- a/include/linux/netdevice.h
 +++ b/include/linux/netdevice.h
-@@ -3419,6 +3419,19 @@ static inline void netif_tx_unlock_bh(st
+@@ -3427,6 +3427,19 @@ static inline void netif_tx_unlock_bh(st
  	}						\
  }
  
@@ -1131,7 +1131,7 @@
  
  /* A. Checksumming of received packets by device.
   *
-@@ -567,6 +571,9 @@ struct sk_buff {
+@@ -573,6 +577,9 @@ struct sk_buff {
  	 * first. This is owned by whoever has the skb queued ATM.
  	 */
  	char			cb[48] __aligned(8);
@@ -1141,7 +1141,7 @@
  
  	unsigned long		_skb_refdst;
  	void			(*destructor)(struct sk_buff *skb);
-@@ -576,6 +583,9 @@ struct sk_buff {
+@@ -582,6 +589,9 @@ struct sk_buff {
  #if defined(CONFIG_NF_CONNTRACK) || defined(CONFIG_NF_CONNTRACK_MODULE)
  	struct nf_conntrack	*nfct;
  #endif
@@ -1151,7 +1151,7 @@
  #if IS_ENABLED(CONFIG_BRIDGE_NETFILTER)
  	struct nf_bridge_info	*nf_bridge;
  #endif
-@@ -655,7 +655,10 @@
+@@ -650,7 +660,10 @@ struct sk_buff {
  	__u8			remcsum_offload:1;
  	__u8			gro_skip:1;
  	/* 1 or 2 bit hole */
@@ -1163,7 +1163,7 @@
  #ifdef CONFIG_NET_SCHED
  	__u16			tc_index;	/* traffic control index */
  #ifdef CONFIG_NET_CLS_ACT
-@@ -800,6 +813,12 @@ void kfree_skb_list(struct sk_buff *segs
+@@ -806,6 +819,12 @@ void kfree_skb_list(struct sk_buff *segs
  void skb_tx_error(struct sk_buff *skb);
  void consume_skb(struct sk_buff *skb);
  void  __kfree_skb(struct sk_buff *skb);
@@ -1176,7 +1176,7 @@
  extern struct kmem_cache *skbuff_head_cache;
  
  void kfree_skb_partial(struct sk_buff *skb, bool head_stolen);
-@@ -3405,6 +3424,10 @@ static inline void __nf_copy(struct sk_b
+@@ -3429,6 +3448,10 @@ static inline void __nf_copy(struct sk_b
  	if (copy)
  		dst->nfctinfo = src->nfctinfo;
  #endif
@@ -1190,8 +1190,8 @@
 --- a/include/net/netfilter/nf_queue.h
 +++ b/include/net/netfilter/nf_queue.h
 @@ -31,6 +31,12 @@ struct nf_queue_handler {
- void nf_register_queue_handler(const struct nf_queue_handler *qh);
- void nf_unregister_queue_handler(void);
+ void nf_register_queue_handler(struct net *net, const struct nf_queue_handler *qh);
+ void nf_unregister_queue_handler(struct net *net);
  void nf_reinject(struct nf_queue_entry *entry, unsigned int verdict);
 +void nf_queue_entry_release_refs(struct nf_queue_entry *entry);
 +
@@ -1252,7 +1252,7 @@
  
  #include "net-sysfs.h"
  
-@@ -2759,7 +2759,12 @@
+@@ -2778,7 +2781,12 @@ static int xmit_one(struct sk_buff *skb,
  	 * go to any taps (by definition we're trying to bypass them).
  	 */
  	if (!skb->fast_forwarded) {
@@ -1264,8 +1264,8 @@
 +#endif
  			dev_queue_xmit_nit(skb, dev);
  	}
- 	
-@@ -2788,6 +2796,7 @@ out:
+ 
+@@ -2827,6 +2835,7 @@ out:
  	*ret = rc;
  	return skb;
  }
@@ -1363,7 +1363,7 @@
  
  /**
   *	skb_panic - private function for out-of-line support
-@@ -662,6 +743,28 @@ static void skb_release_head_state(struc
+@@ -674,6 +755,28 @@ static void skb_release_head_state(struc
  		WARN_ON(in_irq());
  		skb->destructor(skb);
  	}
@@ -1392,7 +1392,7 @@
  #if IS_ENABLED(CONFIG_NF_CONNTRACK)
  	nf_conntrack_put(skb->nfct);
  #endif
-@@ -784,6 +887,10 @@ static void __copy_skb_header(struct sk_
+@@ -859,6 +962,10 @@ static void __copy_skb_header(struct sk_
  	new->sp			= secpath_get(old->sp);
  #endif
  	__nf_copy(new, old, false);
@@ -1403,7 +1403,7 @@
  
  	/* Note : this field could be in headers_start/headers_end section
  	 * It is not yet because we do not want to have a 16 bit hole
-@@ -3344,6 +3451,13 @@ void __init skb_init(void)
+@@ -3463,6 +3570,13 @@ void __init skb_init(void)
  						0,
  						SLAB_HWCACHE_ALIGN|SLAB_PANIC,
  						NULL);
@@ -1416,7 +1416,7 @@
 +#endif
  }
  
- /**
+ static int
 --- a/net/ipv6/ip6_output.c
 +++ b/net/ipv6/ip6_output.c
 @@ -65,9 +65,6 @@ static int ip6_finish_output2(struct net
@@ -1527,7 +1527,7 @@
  /* return EBUSY when somebody else is registered, return EEXIST if the
   * same handler is registered, return 0 in case of success. */
  void nf_register_queue_handler(struct net *net, const struct nf_queue_handler *qh)
-@@ -114,7 +131,8 @@
+@@ -114,7 +131,8 @@ void nf_queue_nf_hook_drop(struct net *n
  int nf_queue(struct sk_buff *skb,
  	     struct nf_hook_ops *elem,
  	     struct nf_hook_state *state,
@@ -1537,7 +1537,7 @@
  {
  	int status = -ENOENT;
  	struct nf_queue_entry *entry = NULL;
-@@ -123,7 +141,17 @@
+@@ -123,7 +141,17 @@ int nf_queue(struct sk_buff *skb,
  	struct net *net = state->net;
  
  	/* QUEUE == DROP if no one is waiting, to be safe. */
@@ -1556,7 +1556,7 @@
  	if (!qh) {
  		status = -ESRCH;
  		goto err;
-@@ -198,8 +226,10 @@
+@@ -198,8 +226,10 @@ void nf_reinject(struct nf_queue_entry *
  		local_bh_enable();
  		break;
  	case NF_QUEUE:
