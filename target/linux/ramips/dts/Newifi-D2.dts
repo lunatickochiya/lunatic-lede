@@ -97,6 +97,7 @@
 		spi-max-frequency = <10000000>;
 		m25p,chunked-io = <32>;
 		m25p,fast-read;
+		apply-4byte-shutdown;
 
 		partitions {
 			compatible = "fixed-partitions";
