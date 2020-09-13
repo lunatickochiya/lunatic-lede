@@ -1,6 +1,6 @@
 --- a/drivers/mtd/spi-nor/spi-nor.c
 +++ b/drivers/mtd/spi-nor/spi-nor.c
-@@ -1176,6 +1176,7 @@ static int spi_nor_chunked_write(struct
+@@ -1108,6 +1108,7 @@ static int spi_nor_chunked_write(struct
  				 size_t *_retlen, const u_char *_buf)
  {
  	struct spi_nor *nor = mtd_to_spi_nor(mtd);
@@ -8,7 +8,7 @@
  	int chunk_size;
  	int retlen = 0;
  	int ret;
-@@ -1184,8 +1185,8 @@ static int spi_nor_chunked_write(struct
+@@ -1116,8 +1117,8 @@ static int spi_nor_chunked_write(struct
  	if (!chunk_size)
  		chunk_size = _len;
  
