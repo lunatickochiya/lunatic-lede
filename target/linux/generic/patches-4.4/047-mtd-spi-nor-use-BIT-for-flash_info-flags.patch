@@ -1,0 +1,40 @@
+From 0618114e2c5dd059f8d22787e62e3f1723af68fc Mon Sep 17 00:00:00 2001
+From: Brian Norris <computersforpeace@gmail.com>
+Date: Fri, 29 Jan 2016 11:25:34 -0800
+Subject: mtd: spi-nor: use BIT() for flash_info flags
+
+It's a little easier to read and make sure there are no collisions
+(IMO).
+
+Signed-off-by: Brian Norris <computersforpeace@gmail.com>
+Reviewed-by: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
+Tested-by: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
+---
+ drivers/mtd/spi-nor/spi-nor.c | 16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
+
+--- a/drivers/mtd/spi-nor/spi-nor.c
++++ b/drivers/mtd/spi-nor/spi-nor.c
+@@ -60,14 +60,14 @@ struct flash_info {
+ 	u16		addr_width;
+ 
+ 	u16		flags;
+-#define	SECT_4K			0x01	/* SPINOR_OP_BE_4K works uniformly */
+-#define	SPI_NOR_NO_ERASE	0x02	/* No erase command needed */
+-#define	SST_WRITE		0x04	/* use SST byte programming */
+-#define	SPI_NOR_NO_FR		0x08	/* Can't do fastread */
+-#define	SECT_4K_PMC		0x10	/* SPINOR_OP_BE_4K_PMC works uniformly */
+-#define	SPI_NOR_DUAL_READ	0x20    /* Flash supports Dual Read */
+-#define	SPI_NOR_QUAD_READ	0x40    /* Flash supports Quad Read */
+-#define	USE_FSR			0x80	/* use flag status register */
++#define SECT_4K			BIT(0)	/* SPINOR_OP_BE_4K works uniformly */
++#define SPI_NOR_NO_ERASE	BIT(1)	/* No erase command needed */
++#define SST_WRITE		BIT(2)	/* use SST byte programming */
++#define SPI_NOR_NO_FR		BIT(3)	/* Can't do fastread */
++#define SECT_4K_PMC		BIT(4)	/* SPINOR_OP_BE_4K_PMC works uniformly */
++#define SPI_NOR_DUAL_READ	BIT(5)	/* Flash supports Dual Read */
++#define SPI_NOR_QUAD_READ	BIT(6)	/* Flash supports Quad Read */
++#define USE_FSR			BIT(7)	/* use flag status register */
+ };
+ 
+ #define JEDEC_MFR(info)	((info)->id[0])

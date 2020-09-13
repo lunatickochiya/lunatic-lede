@@ -1,7 +1,7 @@
 From 76a4707de5e18dc32d9cb4e990686140c5664a15 Mon Sep 17 00:00:00 2001
 From: Brian Norris <computersforpeace@gmail.com>
 Date: Fri, 29 Jan 2016 11:25:35 -0800
-Subject: [PATCH] mtd: spi-nor: add SPI_NOR_HAS_LOCK flag
+Subject: mtd: spi-nor: add SPI_NOR_HAS_LOCK flag
 
 We can't determine this purely by manufacturer type (see commit
 67b9bcd36906 ("mtd: spi-nor: fix Spansion regressions (aliased with
@@ -18,10 +18,10 @@ Tested-by: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
 --- a/drivers/mtd/spi-nor/spi-nor.c
 +++ b/drivers/mtd/spi-nor/spi-nor.c
 @@ -68,6 +68,7 @@ struct flash_info {
- #define	SPI_NOR_DUAL_READ	0x20    /* Flash supports Dual Read */
- #define	SPI_NOR_QUAD_READ	0x40    /* Flash supports Quad Read */
- #define	USE_FSR			0x80	/* use flag status register */
-+#define	SPI_NOR_HAS_LOCK	0x100	/* Flash supports lock/unlock via SR */
+ #define SPI_NOR_DUAL_READ	BIT(5)	/* Flash supports Dual Read */
+ #define SPI_NOR_QUAD_READ	BIT(6)	/* Flash supports Quad Read */
+ #define USE_FSR			BIT(7)	/* use flag status register */
++#define SPI_NOR_HAS_LOCK	BIT(8)	/* Flash supports lock/unlock via SR */
  };
  
  #define JEDEC_MFR(info)	((info)->id[0])
