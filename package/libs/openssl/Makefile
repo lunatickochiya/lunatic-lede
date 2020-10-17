@@ -9,7 +9,7 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=openssl
 PKG_BASE:=1.1.1
-PKG_BUGFIX:=g
+PKG_BUGFIX:=h
 PKG_VERSION:=$(PKG_BASE)$(PKG_BUGFIX)
 PKG_RELEASE:=1
 PKG_USE_MIPS16:=0
@@ -24,7 +24,7 @@ PKG_SOURCE_URL:= \
 	ftp://ftp.pca.dfn.de/pub/tools/net/openssl/source/ \
 	http://www.openssl.org/source/ \
 	http://www.openssl.org/source/old/$(PKG_BASE)/
-PKG_HASH:=ddb04774f1e32f0c49751e21b67216ac87852ceb056b75209af2443400636d46
+PKG_HASH:=5c9ca8774bd7b03e5784f26ae9e9e6d749c9da2438545077e6b3d755a06595d9
 
 PKG_LICENSE:=OpenSSL
 PKG_LICENSE_FILES:=LICENSE
@@ -92,6 +92,7 @@ define Package/libopenssl
 $(call Package/openssl/Default)
   SUBMENU:=SSL
   DEPENDS:=+OPENSSL_WITH_COMPRESSION:zlib \
+	   +libpthread\
 	   +OPENSSL_ENGINE_BUILTIN_AFALG:kmod-crypto-user \
 	   +OPENSSL_ENGINE_BUILTIN_DEVCRYPTO:kmod-cryptodev \
 	   +OPENSSL_ENGINE_BUILTIN_PADLOCK:kmod-crypto-hw-padlock
@@ -340,7 +341,7 @@ define Build/Configure
 	)
 endef
 
-TARGET_CFLAGS += $(FPIC) -ffunction-sections -fdata-sections
+TARGET_CFLAGS += $(FPIC) -ffunction-sections -fdata-sections  -DOPENSSL_THREADS -D_REENTRANT -D_THREAD_SAFE -D_THREADSAFE -pthread
 TARGET_LDFLAGS += -Wl,--gc-sections
 
 define Build/Compile
