@@ -20,6 +20,15 @@ define Device/ap90q
 endef
 TARGET_DEVICES += ap90q
 
+define Device/lunaticbox
+  DEVICE_TITLE := Lunatic-BOX wifi for things
+  BOARDNAME = Lunatic-BOX
+  IMAGE_SIZE = 16000k
+  CONSOLE = ttyS0,115200
+  MTDPARTS = spi0.0:256k(u-boot)ro,64k(u-boot-env),16000k(firmware),64k(art)ro
+endef
+TARGET_DEVICES += lunaticbox
+
 define Device/bsb
   DEVICE_TITLE := Smart Electronics Black Swift board
   DEVICE_PACKAGES := kmod-usb-core kmod-usb2
