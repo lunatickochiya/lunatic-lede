@@ -462,6 +462,9 @@ get_status_led() {
 	csac)
 		status_led="csac:green:status"
 		;;
+	lunaticbox)
+		status_led="lunaticbox:green:lan"
+		;;
 	esac
 }
 
@@ -487,6 +490,9 @@ set_state() {
 		qihoo-c301)
 			local n=$(fw_printenv activeregion | cut -d = -f 2)
 			fw_setenv "image${n}trynum" 0
+			;;
+		lunaticbox)
+			fw_printenv lc >/dev/null 2>&1 && fw_setenv "bootcount" 0
 			;;
 		esac
 		;;
