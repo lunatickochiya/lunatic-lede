@@ -392,6 +392,7 @@ struct fe_soc_data {
 			  u16 val);
 	int (*mdio_read)(struct mii_bus *bus, int phy_addr, int phy_reg);
 	void (*mdio_adjust_link)(struct fe_priv *priv, int port);
+	void (*reset_ports)(struct fe_priv *priv);
 
 	void *swpriv;
 	u32 pdma_glo_cfg;
