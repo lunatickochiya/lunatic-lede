@@ -1426,6 +1426,9 @@ static void fe_reset_pending(struct fe_priv *priv)
 		dev_close(dev);
 	}
 	rtnl_unlock();
+
+	if (priv->soc->reset_ports)
+		priv->soc->reset_ports(priv);
 }
 
 static const struct fe_work_t fe_work[] = {

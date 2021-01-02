@@ -16,6 +16,7 @@
 #include <linux/platform_device.h>
 #include <linux/if_vlan.h>
 #include <linux/of_net.h>
+#include <linux/delay.h>
 
 #include <asm/mach-ralink/ralink_regs.h>
 
@@ -157,6 +158,30 @@ static void mt7621_set_mac(struct fe_priv *priv, unsigned char *mac)
 	spin_unlock_irqrestore(&priv->page_lock, flags);
 }
 
+static void mt7621_reset_ports(struct fe_priv *priv)
+{
+	struct mt7620_gsw *gsw = priv->soc->swpriv;
+	u8 i;
+	u32 val;
+
+	/* Disable all ports */
+	for (i = 0; i <= 4; i++) {
+		val = _mt7620_mii_read(gsw, i, 0x0);
+		val |= BIT(11);
+		_mt7620_mii_write(gsw, i, 0x0, val);
+	}
+
+	/* Allow ports a (short) time to settle */
+	udelay(1000);
+
+	/* Enable ports */
+	for (i = 0; i <= 4; i++) {
+		val = _mt7620_mii_read(gsw, i, 0);
+		val &= ~BIT(11);
+		_mt7620_mii_write(gsw, i, 0, val);
+	}
+}
+
 static struct fe_soc_data mt7621_data = {
 	.init_data = mt7621_init_data,
 	.reset_fe = mt7621_fe_reset,
@@ -175,6 +200,7 @@ static struct fe_soc_data mt7621_data = {
 	.mdio_read = mt7620_mdio_read,
 	.mdio_write = mt7620_mdio_write,
 	.mdio_adjust_link = mt7620_mdio_link_adjust,
+	.reset_ports = mt7621_reset_ports,
 };
 
 const struct of_device_id of_fe_match[] = {

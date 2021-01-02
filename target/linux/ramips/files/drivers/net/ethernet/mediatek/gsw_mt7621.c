@@ -98,10 +98,17 @@ static void mt7621_hw_init(struct mt7620_gsw *gsw, struct device_node *np)
 	mt7530_mdio_w32(gsw, 0x7000, 0x3);
 	usleep_range(10, 20);
 
+	/* show switch revision number */
+	pr_info("gsw: chip rev: %u\n", rt_sysc_r32(SYSC_REG_CHIP_REV_ID));
+
 	/* (GE1, Force 1000M/FD, FC OFF, MAX_RX_LENGTH 2k) */
 	mtk_switch_w32(gsw, 0x2305e30b, GSW_REG_MAC_P0_MCR);
 	mt7530_mdio_w32(gsw, 0x3600, 0x5e30b);
 
+	/* Disable Flow Control Globally */
+	val = mt7530_mdio_r32(gsw, 0x1FE0);
+	val &= ~BIT(31);
+	mt7530_mdio_w32(gsw, 0x1FE0, val);
 
 	/* (GE2, Link down) */
 	mtk_switch_w32(gsw, 0x8000, GSW_REG_MAC_P1_MCR);
