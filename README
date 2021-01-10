@@ -16,6 +16,7 @@ now what i have?
 源码更新交流学习：[点击链接加入群聊](https://jq.qq.com/?_wv=1027&k=5QgVYsC)
 群号： 286754582
 注意：你可以自由使用本套源码编译，但源码编译二次发布请注明我的 GitHub 仓库链接。谢谢合作！
+for node12 you should sudo apt-get install gcc-multilib g++-multilib 
 
   _______                     ________        __
  |       |.-----.-----.-----.|  |  |  |.----.|  |_
