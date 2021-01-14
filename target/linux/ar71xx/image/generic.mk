@@ -29,6 +29,17 @@ define Device/lunaticbox
 endef
 TARGET_DEVICES += lunaticbox
 
+define Device/hualu-wifi-dock
+  $(Device/tplink-8mlzma)
+  DEVICE_TITLE := Hualu Wifi Dock
+  DEVICE_PACKAGES := kmod-usb-core kmod-usb2
+  BOARDNAME := Hualu
+  DEVICE_PROFILE := HUALU
+  TPLINK_HWID := 0x07030101
+  CONSOLE := ttyATH0,115200
+endef
+TARGET_DEVICES += hualu-wifi-dock
+
 define Device/bsb
   DEVICE_TITLE := Smart Electronics Black Swift board
   DEVICE_PACKAGES := kmod-usb-core kmod-usb2

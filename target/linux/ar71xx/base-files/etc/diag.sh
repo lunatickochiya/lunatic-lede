@@ -465,6 +465,9 @@ get_status_led() {
 	lunaticbox)
 		status_led="lunaticbox:green:lan"
 		;;
+	hualu-wifi-dock)
+		status_led="hualu-wifi-dock:blue:system"
+		;;
 	esac
 }
 
