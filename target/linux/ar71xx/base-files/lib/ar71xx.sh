@@ -1247,6 +1247,9 @@ ar71xx_board_detect() {
 	*"Lunatic-BOX")
 		name="lunaticbox"
 		;;
+	*"Hualu Wifi Dock")
+		name="hualu-wifi-dock"
+		;;
 	esac
 
 	[ -z "$AR71XX_MODEL" ] && [ "${machine:0:8}" = 'TP-LINK ' ] && \

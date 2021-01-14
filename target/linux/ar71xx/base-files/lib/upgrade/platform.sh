@@ -439,6 +439,7 @@ platform_check_image() {
 	tl-wr941nd-v5|\
 	tl-wr941nd-v6|\
 	tl-wr940n-v4|\
+	hualu-wifi-dock|\
 	tl-wr941nd)
 		local magic_ver="0100"
 
