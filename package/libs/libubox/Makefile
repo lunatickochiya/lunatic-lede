@@ -1,12 +1,15 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=libubox
-PKG_RELEASE=1
+PKG_RELEASE=5
+PKG_VERSION:=2018-07-25
+PKG_RELEASE=$(PKG_SOURCE_VERSION)
 
 PKG_SOURCE_PROTO:=git
-PKG_SOURCE_URL=$(LEDE_GIT)/project/libubox.git
-PKG_SOURCE_DATE:=2018-11-16
-PKG_SOURCE_VERSION:=4382c76d1f225e462c6adf37e577fea0d046b854
+PKG_SOURCE_URL:=http://git.openwrt.org/project/libubox.git
+PKG_SOURCE_VERSION:=c83a84afbef2b24f960ddeda0b5e2ab01fba6981
+PKG_SOURCE_SUBDIR:=$(PKG_NAME)-$(PKG_VERSION)
+PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION)-$(PKG_SOURCE_VERSION).tar.gz
 PKG_MIRROR_HASH:=17188fdd604f028dde8366a0dca24dd873df28acea1b25a34c8b4db4ef29baac
 CMAKE_INSTALL:=1
 
@@ -16,6 +19,8 @@ PKG_LICENSE_FILES:=
 PKG_MAINTAINER:=Felix Fietkau <nbd@nbd.name>
 
 PKG_BUILD_DEPENDS:=lua
+HOST_BUILD_DEPENDS:=libjson-c/host
+HOST_BUILD_PREFIX:=$(STAGING_DIR_HOST)
 
 include $(INCLUDE_DIR)/package.mk
 include $(INCLUDE_DIR)/host-build.mk
@@ -95,6 +100,9 @@ endef
 CMAKE_HOST_OPTIONS += \
 	-DBUILD_LUA=OFF \
 	-DBUILD_EXAMPLES=OFF \
+	-DCMAKE_SKIP_RPATH=FALSE \
+	-DCMAKE_MACOSX_RPATH=1 \
+	-DCMAKE_INSTALL_RPATH="${STAGING_DIR_HOST}/lib" \
 
 $(eval $(call BuildPackage,libubox))
 $(eval $(call BuildPackage,libblobmsg-json))
