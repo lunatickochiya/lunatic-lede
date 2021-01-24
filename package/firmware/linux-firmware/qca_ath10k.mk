@@ -45,16 +45,16 @@ define Package/ath10k-firmware-qca9888/install
 endef
 $(eval $(call BuildPackage,ath10k-firmware-qca9888))
 
-Package/ath10k-firmware-qca988x = $(call Package/firmware-default,ath10k qca988x firmware)
-define Package/ath10k-firmware-qca988x/install
-	$(INSTALL_DIR) $(1)/lib/firmware/ath10k/QCA988X/hw2.0
-	$(INSTALL_DATA) \
-		$(PKG_BUILD_DIR)/ath10k/QCA988X/hw2.0/board.bin \
-		$(1)/lib/firmware/ath10k/QCA988X/hw2.0/
-	$(INSTALL_DATA) \
-		$(PKG_BUILD_DIR)/ath10k/QCA988X/hw2.0/firmware-5.bin \
-		$(1)/lib/firmware/ath10k/QCA988X/hw2.0/firmware-5.bin
-endef
+#Package/ath10k-firmware-qca988x = $(call Package/firmware-default,ath10k qca988x firmware)
+#define Package/ath10k-firmware-qca988x/install
+#	$(INSTALL_DIR) $(1)/lib/firmware/ath10k/QCA988X/hw2.0
+#	$(INSTALL_DATA) \
+#		$(PKG_BUILD_DIR)/ath10k/QCA988X/hw2.0/board.bin \
+#		$(1)/lib/firmware/ath10k/QCA988X/hw2.0/
+#	$(INSTALL_DATA) \
+#		$(PKG_BUILD_DIR)/ath10k/QCA988X/hw2.0/firmware-5.bin \
+#		$(1)/lib/firmware/ath10k/QCA988X/hw2.0/firmware-5.bin
+#endef
 # $(eval $(call BuildPackage,ath10k-firmware-qca988x))
 
 Package/ath10k-firmware-qca6174 = $(call Package/firmware-default,ath10k qca6174 firmware)

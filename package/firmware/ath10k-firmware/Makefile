@@ -32,10 +32,10 @@ $(Package/ath10k-firmware-default)
   TITLE:=ath10k firmware for QCA9887 devices
 endef
 
-define Package/ath10k-firmware-qca9888
-$(Package/ath10k-firmware-default)
-  TITLE:=ath10k firmware for QCA9888 devices
-endef
+#define Package/ath10k-firmware-qca9888
+#$(Package/ath10k-firmware-default)
+#  TITLE:=ath10k firmware for QCA9888 devices
+#endef
 
 define Package/ath10k-firmware-qca988x
 $(Package/ath10k-firmware-default)
@@ -113,15 +113,15 @@ define Package/ath10k-firmware-qca9887/install
 		$(1)/lib/firmware/ath10k/QCA9887/hw1.0/board.bin
 endef
 
-define Package/ath10k-firmware-qca9888/install
-	$(INSTALL_DIR) $(1)/lib/firmware/ath10k/QCA9888/hw2.0
-	$(INSTALL_DATA) \
-		$(PKG_BUILD_DIR)/QCA9888/hw2.0/board-2.bin \
-		$(1)/lib/firmware/ath10k/QCA9888/hw2.0/board-2.bin
-	$(INSTALL_DATA) \
-		$(PKG_BUILD_DIR)/QCA9888/hw2.0/3.5.3/firmware-5.bin_10.4-3.5.3-00053 \
-		$(1)/lib/firmware/ath10k/QCA9888/hw2.0/firmware-5.bin
-endef
+#define Package/ath10k-firmware-qca9888/install
+#	$(INSTALL_DIR) $(1)/lib/firmware/ath10k/QCA9888/hw2.0
+#	$(INSTALL_DATA) \
+#		$(PKG_BUILD_DIR)/QCA9888/hw2.0/board-2.bin \
+#		$(1)/lib/firmware/ath10k/QCA9888/hw2.0/board-2.bin
+#	$(INSTALL_DATA) \
+#		$(PKG_BUILD_DIR)/QCA9888/hw2.0/3.5.3/firmware-5.bin_10.4-3.5.3-00053 \
+#		$(1)/lib/firmware/ath10k/QCA9888/hw2.0/firmware-5.bin
+#endef
 
 define Package/ath10k-firmware-qca988x/install
 	$(INSTALL_DIR) $(1)/lib/firmware/ath10k/QCA988X/hw2.0
