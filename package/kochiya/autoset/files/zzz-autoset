@@ -37,6 +37,8 @@ sed -i '202,207d' /www/luci-static/material/js/script.js
 /etc/init.d/umdns disable
 /etc/init.d/dawn stop
 /etc/init.d/dawn disable
+/etc/init.d/https-dns-proxy stop
+/etc/init.d/https-dns-proxy disable
 
 
 exit 0
