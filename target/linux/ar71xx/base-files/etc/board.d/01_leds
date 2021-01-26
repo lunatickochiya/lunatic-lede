@@ -522,6 +522,7 @@ tl-wr741nd-v4)
 	;;
 tl-mr3420-v2|\
 tl-wr841n-v8|\
+tl-wr841n-v8-cn|\
 tl-wr842n-v2|\
 tl-wr941nd-v5)
 	ucidef_set_led_netdev "wan" "WAN" "tp-link:green:wan" "eth0"

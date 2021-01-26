@@ -234,4 +234,5 @@ obj-$(CONFIG_ATH79_MACH_CSAC)			+= mach-csac.o
 obj-$(CONFIG_ATH79_MACH_LUNATICBOX)	+= mach-lunaticbox.o
 obj-$(CONFIG_ATH79_Hualu_Wifi_Dock)		+= mach-hualu.o
 obj-$(CONFIG_ATH79_MACH_DW33D_WIFI)	+= mach-dw33d-wifi.o
+obj-$(CONFIG_ATH79_MACH_TL_WR841N_V8_CN)	+= mach-tl-wr841n-v8-cn.o
 

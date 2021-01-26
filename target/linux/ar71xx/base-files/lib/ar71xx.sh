@@ -1253,6 +1253,9 @@ ar71xx_board_detect() {
 	*"Hualu Wifi Dock")
 		name="hualu-wifi-dock"
 		;;
+	*"Pisen Cloud Router")
+		name="tl-wr841n-v8-cn"
+		;;
 	esac
 
 	[ -z "$AR71XX_MODEL" ] && [ "${machine:0:8}" = 'TP-LINK ' ] && \
