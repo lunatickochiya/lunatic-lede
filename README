@@ -2,16 +2,19 @@
 
 
 
-now what i have?
-1.gargoyle and luci
-2.golang node supported
-3.boost supported
-4.sfe supported
-5.fullcone supported
+Now what I have? 20210221
+1.gargoyle and luci (石像鬼及luci｝
+2.golang node boost supported latest （更新golang node boost到最新）
+3.sfe supported
+4.fullcone supported
+5.32MB flash supported （支持32M闪存ramips机器）
 6.mac80211 and mt76 update to 19.07
 7.hostapd update to 20190808 support mesh sae(luci)
-8.openssl update to 1.1.1g and some package feat with 1.1.1
+8.openssl update to 1.1.1j and some package feat with 1.1.1
 9.updated build system speedup building
+10.security fix
+
+本套源码固件演示地址：https://github.com/lunatickochiya/Actions-Lunatic-LEDE
 
 源码更新交流学习：[点击链接加入群聊](https://jq.qq.com/?_wv=1027&k=5QgVYsC)
 群号： 286754582
