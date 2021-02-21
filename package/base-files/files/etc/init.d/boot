@@ -22,6 +22,8 @@ boot() {
 	[ -f /proc/jffs2_bbc ] && echo "S" > /proc/jffs2_bbc
 	[ -f /proc/net/vlan/config ] && vconfig set_name_type DEV_PLUS_VID_NO_PAD
 
+	[ -f /etc/modules.d/ath9k ] && mv /etc/modules.d/ath9k /etc/modules.d/98-ath9k
+	[ -f /etc/modules.d/ath10k ] && mv /etc/modules.d/ath10k /etc/modules.d/99-ath10k
 	mkdir -p /var/run
 	mkdir -p /var/log
 	mkdir -p /var/lock
