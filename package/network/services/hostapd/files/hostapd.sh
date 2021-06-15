@@ -89,7 +89,7 @@ hostapd_common_add_device_config() {
 	config_add_array supported_rates
 	config_add_string beacon_rate
 
-	config_add_string country
+	config_add_string country country3
 	config_add_boolean country_ie doth
 	config_add_string require_mode
 	config_add_boolean legacy_rates
@@ -113,7 +113,7 @@ hostapd_prepare_device_config() {
 	local base="${config%%.conf}"
 	local base_cfg=
 
-	json_get_vars country country_ie beacon_int:100 doth require_mode legacy_rates acs_chan_bias vendor_vht cell_density \
+	json_get_vars country country3 country_ie beacon_int:100 doth require_mode legacy_rates acs_chan_bias vendor_vht cell_density \
 	rts_threshold beacon_rate rssi_reject_assoc_rssi rssi_reject_assoc_timeout rssi_ignore_probe_request
 
 	hostapd_set_log_options base_cfg
@@ -126,6 +126,7 @@ hostapd_prepare_device_config() {
 
 	[ -n "$country" ] && {
 		append base_cfg "country_code=$country" "$N"
+		[ -n "$country3" ] && append base_cfg "country3=$country3" "$N"
 
 		[ "$country_ie" -gt 0 ] && append base_cfg "ieee80211d=1" "$N"
 		[ "$hwmode" = "a" -a "$doth" -gt 0 ] && append base_cfg "ieee80211h=1" "$N"
