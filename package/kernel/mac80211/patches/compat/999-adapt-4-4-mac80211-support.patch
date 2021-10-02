@@ -138,15 +138,17 @@ index 7187153..a0a02d0 100644
  #endif /* __BACKPORT_LINUX_RCUPDATE_H */
 --- a/backport-include/linux/page_ref.h
 +++ b/backport-include/linux/page_ref.h
-@@ -8,6 +8,16 @@
+@@ -8,6 +8,18 @@
  {
  	atomic_inc(&page->_count);
  }
 +
++#if LINUX_VERSION_IS_LESS(4,4,200)
 +static inline int page_ref_count(struct page *page)
 +{
 +	return atomic_read(&page->_count);
 +}
++#endif
 +
 +static inline int page_ref_sub_and_test(struct page *page, int nr)
 +{

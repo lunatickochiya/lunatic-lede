@@ -14,6 +14,11 @@ Now what I have? 20210221
 9.updated build system speedup building
 10.security fix
 
+2021-1001：加入 test-kernel 支持 使得lede1701支持最新的4.4内核 
+TESTING_KERNEL 需要在make menuconfig的General build options 启用后支持（默认关闭）
+
+最新内核目前仅仅适配了ramips（mt7620 mt7621)测试机型歌华链MT7621（支持到4.4.285） 欢迎pr更多平台支持 
+
 本套源码固件演示地址：https://github.com/lunatickochiya/Actions-Lunatic-LEDE
 
 源码更新交流学习：[点击链接加入群聊](https://jq.qq.com/?_wv=1027&k=5QgVYsC)
