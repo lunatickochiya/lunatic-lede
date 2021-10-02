@@ -1,0 +1,72 @@
+From d83eaa351e950e11d14e856acf35acf1567c9656 Mon Sep 17 00:00:00 2001
+From: John Crispin <john@phrozen.org>
+Date: Wed, 12 Aug 2020 18:55:31 +0200
+Subject: [PATCH] Add option to ignore Probe Request frames when RSSI is too
+ low
+
+Add a new hostapd configuration parameters rssi_ignore_probe_request to
+ignore Probe Request frames received with too low RSSI.
+
+Signed-off-by: John Crispin <john@phrozen.org>
+---
+ hostapd/config_file.c | 2 ++
+ hostapd/hostapd.conf  | 4 ++++
+ src/ap/ap_config.h    | 1 +
+ src/ap/beacon.c       | 4 ++++
+ 4 files changed, 11 insertions(+)
+
+diff --git a/hostapd/config_file.c b/hostapd/config_file.c
+index af2445563..b3dc8f81a 100644
+--- a/hostapd/config_file.c
++++ b/hostapd/config_file.c
+@@ -4450,6 +4450,8 @@ static int hostapd_config_fill(struct hostapd_config *conf,
+ 		conf->rssi_reject_assoc_rssi = atoi(pos);
+ 	} else if (os_strcmp(buf, "rssi_reject_assoc_timeout") == 0) {
+ 		conf->rssi_reject_assoc_timeout = atoi(pos);
++	} else if (os_strcmp(buf, "rssi_ignore_probe_request") == 0) {
++		conf->rssi_ignore_probe_request = atoi(pos);
+ 	} else if (os_strcmp(buf, "pbss") == 0) {
+ 		bss->pbss = atoi(pos);
+ 	} else if (os_strcmp(buf, "transition_disable") == 0) {
+diff --git a/hostapd/hostapd.conf b/hostapd/hostapd.conf
+index 21f7b1e13..3ac64a75e 100644
+--- a/hostapd/hostapd.conf
++++ b/hostapd/hostapd.conf
+@@ -2735,6 +2735,10 @@ own_ip_addr=127.0.0.1
+ # threshold (range: 0..255, default=30).
+ #rssi_reject_assoc_timeout=30
+ 
++# Ignore Probe Request frames if RSSI is below given threshold (in dBm)
++# Allowed range: -60 to -90 dBm; default = 0 (rejection disabled)
++#rssi_ignore_probe_request=-75
++
+ ##### Fast Session Transfer (FST) support #####################################
+ #
+ # The options in this section are only available when the build configuration
+diff --git a/src/ap/ap_config.h b/src/ap/ap_config.h
+index b6937cbc0..f7a344e0e 100644
+--- a/src/ap/ap_config.h
++++ b/src/ap/ap_config.h
+@@ -1039,6 +1039,7 @@ struct hostapd_config {
+ 
+ 	int rssi_reject_assoc_rssi;
+ 	int rssi_reject_assoc_timeout;
++	int rssi_ignore_probe_request;
+ 
+ #ifdef CONFIG_AIRTIME_POLICY
+ 	enum {
+diff --git a/src/ap/beacon.c b/src/ap/beacon.c
+index 807fe0ff9..47b260e81 100644
+--- a/src/ap/beacon.c
++++ b/src/ap/beacon.c
+@@ -818,6 +818,10 @@ void handle_probe_req(struct hostapd_data *hapd,
+ 	size_t csa_offs_len;
+ 	struct radius_sta rad_info;
+ 
++	if (hapd->iconf->rssi_ignore_probe_request && ssi_signal &&
++	    ssi_signal < hapd->iconf->rssi_ignore_probe_request)
++		return;
++
+ 	if (len < IEEE80211_HDRLEN)
+ 		return;
+ 	ie = ((const u8 *) mgmt) + IEEE80211_HDRLEN;
