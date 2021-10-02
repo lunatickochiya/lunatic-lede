@@ -27,7 +27,7 @@ define Package/luci-lib-fs
 endef
 
 define Package/luci-lib-fs/description
-  luci-lib-fs
+  luci-lib-fs also with luci-lib-xml
 endef
 
 define Build/Configure
