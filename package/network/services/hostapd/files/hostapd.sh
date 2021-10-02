@@ -97,6 +97,7 @@ hostapd_common_add_device_config() {
 	config_add_int cell_density
 	config_add_int rts_threshold
 	config_add_int rssi_reject_assoc_rssi
+	config_add_int rssi_ignore_probe_request
 	config_add_int rssi_reject_assoc_timeout
 
 	config_add_string acs_chan_bias
@@ -113,7 +114,7 @@ hostapd_prepare_device_config() {
 	local base_cfg=
 
 	json_get_vars country country_ie beacon_int:100 doth require_mode legacy_rates acs_chan_bias vendor_vht cell_density \
-	rts_threshold beacon_rate rssi_reject_assoc_rssi rssi_reject_assoc_timeout
+	rts_threshold beacon_rate rssi_reject_assoc_rssi rssi_reject_assoc_timeout rssi_ignore_probe_request
 
 	hostapd_set_log_options base_cfg
 
@@ -202,6 +203,7 @@ hostapd_prepare_device_config() {
 
 	[ -n "$rssi_reject_assoc_rssi" ] && append base_cfg "rssi_reject_assoc_rssi=$rssi_reject_assoc_rssi" "$N"
 	[ -n "$rssi_reject_assoc_timeout" ] && append base_cfg "rssi_reject_assoc_timeout=$rssi_reject_assoc_timeout" "$N"
+	[ -n "$rssi_ignore_probe_request" ] && append base_cfg "rssi_ignore_probe_request=$rssi_ignore_probe_request" "$N"
 	[ -n "$beacon_rate" ] && append base_cfg "beacon_rate=$beacon_rate" "$N"
 	[ -n "$rlist" ] && append base_cfg "supported_rates=$rlist" "$N"
 	[ -n "$brlist" ] && append base_cfg "basic_rates=$brlist" "$N"
