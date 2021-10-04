@@ -8,13 +8,13 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=procd
-PKG_RELEASE:=2
+PKG_RELEASE:=1
 
 PKG_SOURCE_PROTO:=git
-PKG_SOURCE_URL=$(LEDE_GIT)/project/procd.git
-PKG_SOURCE_DATE:=2018-01-22
-PKG_SOURCE_VERSION:=9a4036fb1b7412ab2ea4f360d2cc7e6a5e0fa6b5
-PKG_MIRROR_HASH:=669f062e9c5228ef9d09cc9904d8ce4651f0b8506a6c2fff27b21e83b26f0abb
+PKG_SOURCE_URL=$(PROJECT_GIT)/project/procd.git
+PKG_MIRROR_HASH:=3c818904c62261f973a016397d0eb9f11bf8d01f7ceddb48fcb0e1d59a139d52
+PKG_SOURCE_DATE:=2020-03-07
+PKG_SOURCE_VERSION:=09b9bd828981a4f9271f8906f7b6f5af04e1a6f9
 CMAKE_INSTALL:=1
 
 PKG_LICENSE:=GPL-2.0
@@ -39,11 +39,15 @@ endif
 CMAKE_OPTIONS += -DEARLY_PATH="$(TARGET_INIT_PATH)"
 TARGET_LDFLAGS += $(if $(CONFIG_USE_GLIBC),-lrt)
 
+TARGET_CFLAGS += -flto
+TARGET_LDFLAGS += -flto
+
 define Package/procd
   SECTION:=base
   CATEGORY:=Base system
-  DEPENDS:=+ubusd +ubus +libjson-script +ubox +USE_GLIBC:librt +libubox +libubus +NAND_SUPPORT:procd-nand
+  DEPENDS:=+ubusd +ubus +libjson-script +ubox +USE_GLIBC:librt +libubox +libubus +libblobmsg-json +libjson-c +NAND_SUPPORT:procd-nand
   TITLE:=OpenWrt system process manager
+  USERID:=:dialout=20 :audio=29
 endef
 
 define Package/procd-ujail
@@ -129,7 +133,7 @@ define Package/procd-seccomp/install
 	$(INSTALL_DIR) $(1)/sbin $(1)/lib
 	$(INSTALL_DATA) $(PKG_INSTALL_DIR)/usr/lib/libpreload-seccomp.so $(1)/lib
 	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/usr/sbin/utrace $(1)/sbin/
-	ln -s utrace $(1)/sbin/seccomp-trace
+	$(LN) utrace $(1)/sbin/seccomp-trace
 	$(INSTALL_DATA) $(PKG_INSTALL_DIR)/usr/lib/libpreload-trace.so $(1)/lib
 endef
 
