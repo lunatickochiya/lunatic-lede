@@ -30,6 +30,7 @@ uci -q batch <<-EOF >/dev/null
 	set wireless.@wifi-iface[1].short_preamble='1'
 	set wireless.@wifi-iface[1].disassoc_low_ack='1'
 	set firewall.@zone[1].input='ACCEPT'
+	add_list umdns.@umdns[0].network='wan'
 	commit
 EOF
 
