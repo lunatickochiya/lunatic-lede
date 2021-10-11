@@ -38,15 +38,7 @@ Signed-off-by: Petr Štetiar <ynezz@true.cz>
 
 --- a/file.c
 +++ b/file.c
-@@ -28,6 +28,7 @@
- #include <glob.h>
- #include <string.h>
- #include <stdlib.h>
-+#include <errno.h>
- 
- #include "uci.h"
- #include "uci_internal.h"
-@@ -63,6 +64,7 @@ __private void uci_getln(struct uci_cont
+@@ -64,6 +64,7 @@ __private void uci_getln(struct uci_cont
  			return;
  
  		ofs += strlen(p);
@@ -54,7 +46,7 @@ Signed-off-by: Petr Štetiar <ynezz@true.cz>
  		if (pctx->buf[ofs - 1] == '\n') {
  			pctx->line++;
  			return;
-@@ -120,6 +122,15 @@ static inline void addc(struct uci_conte
+@@ -121,6 +122,15 @@ static inline void addc(struct uci_conte
  	*pos_src += 1;
  }
  
@@ -70,7 +62,7 @@ Signed-off-by: Petr Štetiar <ynezz@true.cz>
  /*
   * parse a double quoted string argument from the command line
   */
-@@ -384,7 +395,8 @@ static void uci_parse_package(struct uci
+@@ -385,7 +395,8 @@ static void uci_parse_package(struct uci
  	char *name;
  
  	/* command string null-terminated by strtok */
@@ -80,7 +72,7 @@ Signed-off-by: Petr Štetiar <ynezz@true.cz>
  
  	ofs_name = next_arg(ctx, true, true, true);
  	assert_eol(ctx);
-@@ -416,7 +428,8 @@ static void uci_parse_config(struct uci_
+@@ -417,7 +428,8 @@ static void uci_parse_config(struct uci_
  	}
  
  	/* command string null-terminated by strtok */
@@ -90,7 +82,7 @@ Signed-off-by: Petr Štetiar <ynezz@true.cz>
  
  	ofs_type = next_arg(ctx, true, false, false);
  	type = pctx_str(pctx, ofs_type);
-@@ -466,7 +479,8 @@ static void uci_parse_option(struct uci_
+@@ -467,7 +479,8 @@ static void uci_parse_option(struct uci_
  		uci_parse_error(ctx, "option/list command found before the first section");
  
  	/* command string null-terminated by strtok */
