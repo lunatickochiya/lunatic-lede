@@ -1032,7 +1032,7 @@ config BUSYBOX_DEFAULT_FEATURE_FIND_MAXDEPTH
 	default y
 config BUSYBOX_DEFAULT_FEATURE_FIND_NEWER
 	bool
-	default n
+	default y
 config BUSYBOX_DEFAULT_FEATURE_FIND_INUM
 	bool
 	default n
@@ -1590,13 +1590,13 @@ config BUSYBOX_DEFAULT_SCRIPTREPLAY
 	default n
 config BUSYBOX_DEFAULT_SWAPONOFF
 	bool
-	default n
+	default y
 config BUSYBOX_DEFAULT_FEATURE_SWAPON_DISCARD
 	bool
-	default n
+	default y
 config BUSYBOX_DEFAULT_FEATURE_SWAPON_PRI
 	bool
-	default n
+	default y
 config BUSYBOX_DEFAULT_SWITCH_ROOT
 	bool
 	default y
@@ -2025,7 +2025,8 @@ config BUSYBOX_DEFAULT_WHOIS
 	default n
 config BUSYBOX_DEFAULT_FEATURE_IPV6
 	bool
-	default y
+	default y if IPV6
+	default n
 config BUSYBOX_DEFAULT_FEATURE_UNIX_LOCAL
 	bool
 	default n
