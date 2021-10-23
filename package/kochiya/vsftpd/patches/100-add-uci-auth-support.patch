@@ -1,16 +1,16 @@
 --- a/parseconf.c
 +++ b/parseconf.c
-@@ -178,6 +178,7 @@
-   { "rsa_private_key_file", &tunable_rsa_private_key_file },
-   { "dsa_private_key_file", &tunable_dsa_private_key_file },
+@@ -183,6 +183,7 @@ parseconf_str_array[] =
    { "ca_certs_file", &tunable_ca_certs_file },
-+  { "uci_config_name", &tunable_uci_config_name },
+   { "ssl_sni_hostname", &tunable_ssl_sni_hostname },
    { "cmds_denied", &tunable_cmds_denied },
++  { "uci_config_name", &tunable_uci_config_name },
    { 0, 0 }
  };
+ 
 --- a/sysdeputil.c
 +++ b/sysdeputil.c
-@@ -175,6 +175,9 @@
+@@ -180,6 +180,9 @@
  #include <pwd.h>
  #include <unistd.h>
  #include <crypt.h>
@@ -20,7 +20,7 @@
  #endif
  
  /* Prefer libcap based capabilities over raw syscall capabilities */
-@@ -238,14 +240,24 @@
+@@ -242,14 +245,24 @@ void vsf_insert_uwtmp(const struct mystr
  void vsf_remove_uwtmp(void);
  
  #ifndef VSF_SYSDEP_HAVE_PAM
@@ -46,7 +46,7 @@
    if (p_pwd == NULL)
    {
      return 0;
-@@ -301,6 +313,51 @@
+@@ -305,6 +318,51 @@ vsf_sysdep_check_auth(struct mystr* p_us
    return 0;
  }
  
@@ -100,29 +100,29 @@
  #if (defined(__sun) || defined(__hpux)) && \
 --- a/tunables.c
 +++ b/tunables.c
-@@ -142,6 +142,7 @@
- const char* tunable_rsa_private_key_file;
+@@ -146,6 +146,7 @@ const char* tunable_rsa_private_key_file
  const char* tunable_dsa_private_key_file;
  const char* tunable_ca_certs_file;
+ const char* tunable_ssl_sni_hostname;
 +const char* tunable_uci_config_name;
  
  static void install_str_setting(const char* p_value, const char** p_storage);
  
-@@ -288,6 +289,7 @@
-   install_str_setting(0, &tunable_rsa_private_key_file);
+@@ -296,6 +297,7 @@ tunables_load_defaults()
    install_str_setting(0, &tunable_dsa_private_key_file);
    install_str_setting(0, &tunable_ca_certs_file);
+   install_str_setting(0, &tunable_ssl_sni_hostname);
 +  install_str_setting(0, &tunable_uci_config_name);
  }
  
  void
 --- a/tunables.h
 +++ b/tunables.h
-@@ -144,6 +144,7 @@
- extern const char* tunable_rsa_private_key_file;
- extern const char* tunable_dsa_private_key_file;
+@@ -149,6 +149,7 @@ extern const char* tunable_dsa_private_k
  extern const char* tunable_ca_certs_file;
-+extern const char* tunable_uci_config_name;
+ extern const char* tunable_ssl_sni_hostname;
  extern const char* tunable_cmds_denied;
++extern const char* tunable_uci_config_name;
  
  #endif /* VSF_TUNABLES_H */
+ 

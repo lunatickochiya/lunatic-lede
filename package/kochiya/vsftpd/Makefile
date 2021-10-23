@@ -8,15 +8,15 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=vsftpd
-PKG_VERSION:=3.0.3
+PKG_VERSION:=3.0.5
 PKG_RELEASE:=1
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
 PKG_SOURCE_URL:=https://security.appspot.com/downloads/
-PKG_MD5SUM:=da119d084bd3f98664636ea05b5bb398
+PKG_HASH:=26b602ae454b0ba6d99ef44a09b6b9e0dfa7f67228106736df1f278c70bc91d3
 PKG_LICENSE:=GPLv2
 
-PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)-$(BUILD_VARIANT)/$(PKG_NAME)-$(PKG_VERSION)
+
 
 include $(INCLUDE_DIR)/package.mk
 
@@ -24,8 +24,8 @@ define Package/vsftpd/Default
   SUBMENU:=File Transfer
   SECTION:=net
   CATEGORY:=Network
-  TITLE:=A fast and secure FTP server
-  URL:=http://vsftpd.beasts.org/
+  TITLE:=Fast and secure FTP server
+  URL:=https://security.appspot.com/vsftpd.html
   MAINTAINER:=Cezary Jackiewicz <cezary@eko.one.pl>
   DEPENDS:=+libuci
 endef
@@ -59,16 +59,20 @@ Package/vsftpd-tls/conffiles=$(Package/vsftpd/conffiles)
 
 ifneq ($(CONFIG_USE_MUSL),)
   NLSSTRING:=-lcrypt
+else ifneq ($(CONFIG_USE_GLIBC),)
+  NLSSTRING:=-lcrypt
 else
   NLSSTRING:=-lcrypt -lnsl
 endif
+
+TARGET_CFLAGS += -D_GNU_SOURCE -include fcntl.h
 
 ifeq ($(BUILD_VARIANT),notls)
  define Build/Compile
 	$(SED) 's/-lcrypt -lnsl/$(NLSSTRING)/' $(PKG_BUILD_DIR)/Makefile
 	$(MAKE) -C $(PKG_BUILD_DIR) \
 		CC="$(TARGET_CC)" \
-		CFLAGS="$(TARGET_CFLAGS)" \
+		CFLAGS="$(TARGET_CFLAGS) $(TARGET_CPPFLAGS)" \
 		LDFLAGS="$(TARGET_LDFLAGS)" \
 		vsftpd
  endef
@@ -81,7 +85,7 @@ ifeq ($(BUILD_VARIANT),tls)
 	$(SED) 's/-lcrypt -lnsl/$(NLSSTRING)/' $(PKG_BUILD_DIR)/Makefile
 	$(MAKE) -C $(PKG_BUILD_DIR) \
 		CC="$(TARGET_CC)" \
-		CFLAGS="$(TARGET_CFLAGS)" \
+		CFLAGS="$(TARGET_CFLAGS) $(TARGET_CPPFLAGS)" \
 		LDFLAGS="$(TARGET_LDFLAGS)" \
 		vsftpd
  endef
