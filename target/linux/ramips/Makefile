@@ -14,7 +14,7 @@ FEATURES:=squashfs gpio
 MAINTAINER:=John Crispin <john@phrozen.org>
 
 KERNEL_PATCHVER:=4.4
-KERNEL_TESTING_PATCHVER := 4.4.287
+KERNEL_TESTING_PATCHVER := 4.4.289
 
 define Target/Description
 	Build firmware images for Ralink RT288x/RT3xxx based boards.
