@@ -1,5 +1,5 @@
-src-git packages https://github.com/lunatickochiya/packages-lunatic.git^21e4927ca9af919bea5433be255f100c07250086
-src-git luci https://github.com/lunatickochiya/luci-lunatic.git^e061d7985e28a68c053570140ba0af164b57e251
-src-git routing https://github.com/lunatickochiya/routing-lunatic.git^bfd6d56510ad5e4bbbb0a74a6d4396c9eb693460
-src-git telephony https://github.com/lunatickochiya/telephony-lunatic.git^0629549ec888fe167b496d4118abcd5758da56d8
+src-git packages https://github.com/lunatickochiya/packages-lunatic.git;lede-17.01
+src-git luci https://github.com/lunatickochiya/luci-lunatic.git;lede-17.01
+src-git routing https://github.com/lunatickochiya/routing-lunatic.git;lede-17.01
+src-git telephony https://github.com/lunatickochiya/telephony-lunatic.git;lede-17.01
 src-git private https://github.com/lunatickochiya/my-package.git
