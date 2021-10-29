@@ -1060,7 +1060,7 @@
 +
 --- a/include/linux/netdevice.h
 +++ b/include/linux/netdevice.h
-@@ -3427,6 +3427,19 @@ static inline void netif_tx_unlock_bh(st
+@@ -3426,6 +3426,19 @@ static inline void netif_tx_unlock_bh(st
  	}						\
  }
  
@@ -1176,7 +1176,7 @@
  extern struct kmem_cache *skbuff_head_cache;
  
  void kfree_skb_partial(struct sk_buff *skb, bool head_stolen);
-@@ -3429,6 +3448,10 @@ static inline void __nf_copy(struct sk_b
+@@ -3426,6 +3445,10 @@ static inline void __nf_copy(struct sk_b
  	if (copy)
  		dst->nfctinfo = src->nfctinfo;
  #endif
@@ -1363,7 +1363,7 @@
  
  /**
   *	skb_panic - private function for out-of-line support
-@@ -674,6 +755,28 @@ static void skb_release_head_state(struc
+@@ -666,6 +747,28 @@ static void skb_release_head_state(struc
  		WARN_ON(in_irq());
  		skb->destructor(skb);
  	}
@@ -1392,7 +1392,7 @@
  #if IS_ENABLED(CONFIG_NF_CONNTRACK)
  	nf_conntrack_put(skb->nfct);
  #endif
-@@ -859,6 +962,10 @@ static void __copy_skb_header(struct sk_
+@@ -788,6 +891,10 @@ static void __copy_skb_header(struct sk_
  	new->sp			= secpath_get(old->sp);
  #endif
  	__nf_copy(new, old, false);
@@ -1403,7 +1403,7 @@
  
  	/* Note : this field could be in headers_start/headers_end section
  	 * It is not yet because we do not want to have a 16 bit hole
-@@ -3463,6 +3570,13 @@ void __init skb_init(void)
+@@ -3392,6 +3499,13 @@ void __init skb_init(void)
  						0,
  						SLAB_HWCACHE_ALIGN|SLAB_PANIC,
  						NULL);

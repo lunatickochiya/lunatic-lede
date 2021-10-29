@@ -28,11 +28,9 @@ Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
  drivers/net/can/flexcan.c | 8 +++++++-
  1 file changed, 7 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/net/can/flexcan.c b/drivers/net/can/flexcan.c
-index b18bb0334ded6..dcad5213eb348 100644
 --- a/drivers/net/can/flexcan.c
 +++ b/drivers/net/can/flexcan.c
-@@ -379,9 +379,15 @@ static int flexcan_chip_disable(struct flexcan_priv *priv)
+@@ -379,9 +379,15 @@ static int flexcan_chip_disable(struct f
  static int flexcan_chip_freeze(struct flexcan_priv *priv)
  {
  	struct flexcan_regs __iomem *regs = priv->regs;
@@ -49,6 +47,3 @@ index b18bb0334ded6..dcad5213eb348 100644
  	reg = flexcan_read(&regs->mcr);
  	reg |= FLEXCAN_MCR_FRZ | FLEXCAN_MCR_HALT;
  	flexcan_write(reg, &regs->mcr);
--- 
-cgit 1.2.3-1.el7
-

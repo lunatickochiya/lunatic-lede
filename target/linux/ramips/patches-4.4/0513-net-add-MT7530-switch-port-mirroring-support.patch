@@ -42,7 +42,7 @@
  	bool			global_vlan_enable;
  	struct mt7530_vlan_entry	vlan_entries[MT7530_NUM_VLANS];
  	struct mt7530_port_entry	port_entries[MT7530_NUM_PORTS];
-@@ -505,6 +519,138 @@ mt7530_get_vid(struct switch_dev *dev, c
+@@ -509,6 +523,138 @@ mt7530_get_vid(struct switch_dev *dev, c
  	return 0;
  }
  
@@ -181,7 +181,7 @@
  static void
  mt7530_write_vlan_entry(struct mt7530_priv *priv, int vlan, u16 vid,
  	                    u8 ports, u8 etags)
-@@ -558,6 +704,7 @@ mt7530_apply_config(struct switch_dev *d
+@@ -562,6 +708,7 @@ mt7530_apply_config(struct switch_dev *d
  	int i, j;
  	u8 tag_ports;
  	u8 untag_ports;
@@ -189,7 +189,7 @@
  
  	if (!priv->global_vlan_enable) {
  		for (i = 0; i < MT7530_NUM_PORTS; i++)
-@@ -637,6 +784,31 @@ mt7530_apply_config(struct switch_dev *d
+@@ -641,6 +788,31 @@ mt7530_apply_config(struct switch_dev *d
  		mt7530_w32(priv, REG_ESW_PORT_PPBV1(i), val);
  	}
  
@@ -221,7 +221,7 @@
  	return 0;
  }
  
-@@ -830,6 +1002,34 @@ static const struct switch_attr mt7530_g
+@@ -834,6 +1006,34 @@ static const struct switch_attr mt7530_g
  		.description = "Get MIB counters for switch",
  		.get = mt7530_sw_get_mib,
  		.set = NULL,
@@ -256,7 +256,7 @@
  	},
  };
  
-@@ -840,6 +1040,20 @@ static const struct switch_attr mt7621_p
+@@ -844,6 +1044,20 @@ static const struct switch_attr mt7621_p
  		.description = "Get MIB counters for port",
  		.get = mt7621_sw_get_port_mib,
  		.set = NULL,
@@ -277,7 +277,7 @@
  	},
  };
  
-@@ -861,6 +1075,20 @@ static const struct switch_attr mt7530_p
+@@ -865,6 +1079,20 @@ static const struct switch_attr mt7530_p
  		.description = "Get MIB counters for port",
  		.get = mt7530_sw_get_port_mib,
  		.set = NULL,

@@ -1,0 +1,86 @@
+From 9a6f2b0113c8fce815db7c9d23754bdea4b428a0 Mon Sep 17 00:00:00 2001
+From: Andrew Lunn <andrew@lunn.ch>
+Date: Mon, 11 Apr 2016 21:40:05 +0200
+Subject: net: mdio: Fix lockdep falls positive splat
+
+MDIO devices can be stacked upon each other. The current code supports
+two levels, which until recently has been enough for a DSA mdio bus on
+top of another bus. Now we have hardware which has an MDIO mux in the
+middle.
+
+Define an MDIO MUTEX class with three levels.
+
+Signed-off-by: Andrew Lunn <andrew@lunn.ch>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+---
+ drivers/net/phy/mdio-mux.c | 10 ++--------
+ drivers/net/phy/mdio_bus.c |  4 ++--
+ include/linux/mdio.h       | 11 +++++++++++
+ 3 files changed, 15 insertions(+), 10 deletions(-)
+
+--- a/drivers/net/phy/mdio-mux.c
++++ b/drivers/net/phy/mdio-mux.c
+@@ -46,13 +46,7 @@ static int mdio_mux_read(struct mii_bus
+ 	struct mdio_mux_parent_bus *pb = cb->parent;
+ 	int r;
+ 
+-	/* In theory multiple mdio_mux could be stacked, thus creating
+-	 * more than a single level of nesting.  But in practice,
+-	 * SINGLE_DEPTH_NESTING will cover the vast majority of use
+-	 * cases.  We use it, instead of trying to handle the general
+-	 * case.
+-	 */
+-	mutex_lock_nested(&pb->mii_bus->mdio_lock, SINGLE_DEPTH_NESTING);
++	mutex_lock_nested(&pb->mii_bus->mdio_lock, MDIO_MUTEX_MUX);
+ 	r = pb->switch_fn(pb->current_child, cb->bus_number, pb->switch_data);
+ 	if (r)
+ 		goto out;
+@@ -77,7 +71,7 @@ static int mdio_mux_write(struct mii_bus
+ 
+ 	int r;
+ 
+-	mutex_lock_nested(&pb->mii_bus->mdio_lock, SINGLE_DEPTH_NESTING);
++	mutex_lock_nested(&pb->mii_bus->mdio_lock, MDIO_MUTEX_MUX);
+ 	r = pb->switch_fn(pb->current_child, cb->bus_number, pb->switch_data);
+ 	if (r)
+ 		goto out;
+--- a/drivers/net/phy/mdio_bus.c
++++ b/drivers/net/phy/mdio_bus.c
+@@ -418,7 +418,7 @@ int mdiobus_read_nested(struct mii_bus *
+ 
+ 	BUG_ON(in_interrupt());
+ 
+-	mutex_lock_nested(&bus->mdio_lock, SINGLE_DEPTH_NESTING);
++	mutex_lock_nested(&bus->mdio_lock, MDIO_MUTEX_NESTED);
+ 	retval = bus->read(bus, addr, regnum);
+ 	mutex_unlock(&bus->mdio_lock);
+ 
+@@ -470,7 +470,7 @@ int mdiobus_write_nested(struct mii_bus
+ 
+ 	BUG_ON(in_interrupt());
+ 
+-	mutex_lock_nested(&bus->mdio_lock, SINGLE_DEPTH_NESTING);
++	mutex_lock_nested(&bus->mdio_lock, MDIO_MUTEX_NESTED);
+ 	err = bus->write(bus, addr, regnum, val);
+ 	mutex_unlock(&bus->mdio_lock);
+ 
+--- a/include/linux/mdio.h
++++ b/include/linux/mdio.h
+@@ -12,6 +12,17 @@
+ #include <uapi/linux/mdio.h>
+ 
+ 
++/* Multiple levels of nesting are possible. However typically this is
++ * limited to nested DSA like layer, a MUX layer, and the normal
++ * user. Instead of trying to handle the general case, just define
++ * these cases.
++ */
++enum mdio_mutex_lock_class {
++	MDIO_MUTEX_NORMAL,
++	MDIO_MUTEX_MUX,
++	MDIO_MUTEX_NESTED,
++};
++
+ static inline bool mdio_phy_id_is_c45(int phy_id)
+ {
+ 	return (phy_id & MDIO_PHY_ID_C45) && !(phy_id & ~MDIO_PHY_ID_C45_MASK);

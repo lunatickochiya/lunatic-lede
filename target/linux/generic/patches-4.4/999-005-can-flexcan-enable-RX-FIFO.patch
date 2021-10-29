@@ -29,11 +29,9 @@ Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
  drivers/net/can/flexcan.c | 10 +++++++---
  1 file changed, 7 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/net/can/flexcan.c b/drivers/net/can/flexcan.c
-index 66aef0a575ef8..b18bb0334ded6 100644
 --- a/drivers/net/can/flexcan.c
 +++ b/drivers/net/can/flexcan.c
-@@ -1098,10 +1098,14 @@ static int register_flexcandev(struct net_device *dev)
+@@ -1097,10 +1097,14 @@ static int register_flexcandev(struct ne
  	if (err)
  		goto out_chip_disable;
  
@@ -51,6 +49,3 @@ index 66aef0a575ef8..b18bb0334ded6 100644
  	flexcan_write(reg, &regs->mcr);
  
  	/* Currently we only support newer versions of this core
--- 
-cgit 1.2.3-1.el7
-
