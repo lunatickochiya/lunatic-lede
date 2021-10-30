@@ -1,0 +1,55 @@
+From 200c1b1c234bb55a345f2ded1bbfeceed7ac6c2d Mon Sep 17 00:00:00 2001
+From: John Crispin <john@phrozen.org>
+Date: Tue, 11 Aug 2020 10:01:04 +0200
+Subject: [PATCH] mac80211: rename csa counters to countdown counters
+
+We want to reuse the functions and structs for other counters such as BSS
+color change. Rename them to more generic names.
+
+Signed-off-by: John Crispin <john@phrozen.org>
+Link: https://lore.kernel.org/r/20200811080107.3615705-2-john@phrozen.org
+Signed-off-by: Johannes Berg <johannes.berg@intel.com>
+---
+ mac80211.c   |  4 ++--
+ mt7615/mcu.c | 10 +++++-----
+ mt7915/mcu.c |  8 ++++----
+ 3 files changed, 11 insertions(+), 11 deletions(-)
+
+--- a/mac80211.c
++++ b/mac80211.c
+@@ -941,7 +941,7 @@ EXPORT_SYMBOL_GPL(mt76_get_txpower);
+ static void
+ __mt76_csa_finish(void *priv, u8 *mac, struct ieee80211_vif *vif)
+ {
+-	if (vif->csa_active && ieee80211_csa_is_complete(vif))
++	if (vif->csa_active && ieee80211_beacon_cntdwn_is_complete(vif))
+ 		ieee80211_csa_finish(vif);
+ }
+ 
+@@ -966,7 +966,7 @@ __mt76_csa_check(void *priv, u8 *mac, st
+ 	if (!vif->csa_active)
+ 		return;
+ 
+-	dev->csa_complete |= ieee80211_csa_is_complete(vif);
++	dev->csa_complete |= ieee80211_beacon_cntdwn_is_complete(vif);
+ }
+ 
+ void mt76_csa_check(struct mt76_dev *dev)
+--- a/mt7615/mcu.c
++++ b/mt7615/mcu.c
+@@ -1143,12 +1143,12 @@ int mt7615_mcu_set_bcn(struct mt7615_dev
+ 	memcpy(req.pkt + MT_TXD_SIZE, skb->data, skb->len);
+ 	req.pkt_len = cpu_to_le16(MT_TXD_SIZE + skb->len);
+ 	req.tim_ie_pos = cpu_to_le16(MT_TXD_SIZE + offs.tim_offset);
+-	if (offs.csa_counter_offs[0]) {
++	if (offs.cntdwn_counter_offs[0]) {
+ 		u16 csa_offs;
+ 
+-		csa_offs = MT_TXD_SIZE + offs.csa_counter_offs[0] - 4;
++		csa_offs = MT_TXD_SIZE + offs.cntdwn_counter_offs[0] - 4;
+ 		req.csa_ie_pos = cpu_to_le16(csa_offs);
+-		req.csa_cnt = skb->data[offs.csa_counter_offs[0]];
++		req.csa_cnt = skb->data[offs.cntdwn_counter_offs[0]];
+ 	}
+ 	dev_kfree_skb(skb);
+ 
