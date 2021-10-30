@@ -2,4 +2,5 @@ src-git packages https://github.com/lunatickochiya/packages-lunatic.git;lede-17.
 src-git luci https://github.com/lunatickochiya/luci-lunatic.git;lede-17.01
 src-git routing https://github.com/lunatickochiya/routing-lunatic.git;lede-17.01
 src-git telephony https://github.com/lunatickochiya/telephony-lunatic.git;lede-17.01
-src-git lienol https://github.com/lunatickochiya/openwrt-passwall;main
+src-git xiaorouji https://github.com/xiaorouji/openwrt-passwall;main
+src-git Lienol https://github.com/Lienol/openwrt-package;main
