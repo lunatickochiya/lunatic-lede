@@ -22,6 +22,12 @@ uci -q batch <<-EOF >/dev/null
 	set wireless.@wifi-iface[0].short_preamble='1'
 	set wireless.@wifi-iface[1].short_preamble='1'
 	set wireless.@wifi-iface[1].disassoc_low_ack='1'
+	set wireless.@wifi-iface[0].ieee80211k='1'
+	set wireless.@wifi-iface[0].ieee80211v='1'
+	set wireless.@wifi-iface[0].time_advertisement='0'
+	set wireless.@wifi-iface[1].ieee80211k='1'
+	set wireless.@wifi-iface[1].ieee80211v='1'
+	set wireless.@wifi-iface[1].time_advertisement='0'
 	add_list umdns.@umdns[0].network='wan'
 	commit
 EOF
