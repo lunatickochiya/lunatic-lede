@@ -1,0 +1,35 @@
+From 7af305a1245a7ceff2d8577e011d0a0f7cc33e4c Mon Sep 17 00:00:00 2001
+From: Stanislaw Gruszka <stf_xl@wp.pl>
+Date: Tue, 4 May 2021 10:12:20 +0200
+Subject: [PATCH] rt2x00: do not set timestamp for injected frames
+
+We setup hardware to insert TSF timestamp for beacon and probe response
+frames. This is undesired for injected frames, which might want to
+set their own timestamp values, so disable this setting for injected
+frames.
+
+Tested-by: ZeroBeat <ZeroBeat@gmx.de>
+Tested-by: n0w1re <n0w1re@protonmail.ch>
+Signed-off-by: Stanislaw Gruszka <stf_xl@wp.pl>
+Signed-off-by: Kalle Valo <kvalo@codeaurora.org>
+Link: https://lore.kernel.org/r/20210504081220.666939-1-stf_xl@wp.pl
+---
+ drivers/net/wireless/ralink/rt2x00/rt2x00queue.c | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/net/wireless/ralink/rt2x00/rt2x00queue.c b/drivers/net/wireless/ralink/rt2x00/rt2x00queue.c
+index d4d389e8f1b4ec..fb1d31b2d52aec 100644
+--- a/drivers/net/wireless/ralink/rt2x00/rt2x00queue.c
++++ b/drivers/net/wireless/ralink/rt2x00/rt2x00queue.c
+@@ -446,8 +446,9 @@ static void rt2x00queue_create_tx_descriptor(struct rt2x00_dev *rt2x00dev,
+ 	 * Beacons and probe responses require the tsf timestamp
+ 	 * to be inserted into the frame.
+ 	 */
+-	if (ieee80211_is_beacon(hdr->frame_control) ||
+-	    ieee80211_is_probe_resp(hdr->frame_control))
++	if ((ieee80211_is_beacon(hdr->frame_control) ||
++	     ieee80211_is_probe_resp(hdr->frame_control)) &&
++	    !(tx_info->flags & IEEE80211_TX_CTL_INJECTED))
+ 		__set_bit(ENTRY_TXD_REQ_TIMESTAMP, &txdesc->flags);
+ 
+ 	if ((tx_info->flags & IEEE80211_TX_CTL_FIRST_FRAGMENT) &&
