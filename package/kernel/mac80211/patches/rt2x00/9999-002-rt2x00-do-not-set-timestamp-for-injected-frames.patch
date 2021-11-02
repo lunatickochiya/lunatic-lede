@@ -17,11 +17,9 @@ Link: https://lore.kernel.org/r/20210504081220.666939-1-stf_xl@wp.pl
  drivers/net/wireless/ralink/rt2x00/rt2x00queue.c | 5 +++--
  1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/net/wireless/ralink/rt2x00/rt2x00queue.c b/drivers/net/wireless/ralink/rt2x00/rt2x00queue.c
-index d4d389e8f1b4ec..fb1d31b2d52aec 100644
 --- a/drivers/net/wireless/ralink/rt2x00/rt2x00queue.c
 +++ b/drivers/net/wireless/ralink/rt2x00/rt2x00queue.c
-@@ -446,8 +446,9 @@ static void rt2x00queue_create_tx_descriptor(struct rt2x00_dev *rt2x00dev,
+@@ -446,8 +446,9 @@ static void rt2x00queue_create_tx_descri
  	 * Beacons and probe responses require the tsf timestamp
  	 * to be inserted into the frame.
  	 */

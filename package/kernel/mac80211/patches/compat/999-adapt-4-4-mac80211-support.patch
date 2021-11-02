@@ -4,8 +4,6 @@ This patch is made for lede-17.01 kernel 4.4 to use mac80211 4.19
 also mt76 can sync with openwrt 19.07 
 Signed-off-by: LunaticKochiya <125438787@qq.com>
 Signed-off-by: LunaticUrey <lunaticurey@gmail.com>
-diff --git a/include/linux/ath9k_platform.h b/include/linux/ath9k_platform.h
-index 30ce216..558445f 100644
 --- a/include/linux/ath9k_platform.h
 +++ b/include/linux/ath9k_platform.h
 @@ -49,10 +49,13 @@ struct ath9k_platform_data {

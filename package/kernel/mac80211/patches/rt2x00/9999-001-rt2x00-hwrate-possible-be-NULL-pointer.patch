@@ -1,8 +1,6 @@
-diff --git a/drivers/net/wireless/ralink/rt2x00/rt2x00queue.c b/drivers/net/wireless/ralink/rt2x00/rt2x00queue.c
-index fb1d31b2d52a..671779da720b 100644
 --- a/drivers/net/wireless/ralink/rt2x00/rt2x00queue.c
 +++ b/drivers/net/wireless/ralink/rt2x00/rt2x00queue.c
-@@ -464,6 +464,8 @@ static void rt2x00queue_create_tx_descriptor(struct rt2x00_dev *rt2x00dev,
+@@ -463,6 +463,8 @@ static void rt2x00queue_create_tx_descri
  		txdesc->rate_mode = RATE_MODE_HT_MIX;
  	else {
  		rate = ieee80211_get_tx_rate(rt2x00dev->hw, tx_info);
@@ -11,7 +9,7 @@ index fb1d31b2d52a..671779da720b 100644
  		hwrate = rt2x00_get_rate(rate->hw_value);
  		if (hwrate->flags & DEV_RATE_OFDM)
  			txdesc->rate_mode = RATE_MODE_OFDM;
-@@ -477,6 +479,16 @@ static void rt2x00queue_create_tx_descriptor(struct rt2x00_dev *rt2x00dev,
+@@ -476,6 +478,16 @@ static void rt2x00queue_create_tx_descri
  	rt2x00crypto_create_tx_descriptor(rt2x00dev, skb, txdesc);
  	rt2x00queue_create_tx_descriptor_seq(rt2x00dev, skb, txdesc);
  
@@ -28,11 +26,9 @@ index fb1d31b2d52a..671779da720b 100644
  	if (rt2x00_has_cap_flag(rt2x00dev, REQUIRE_HT_TX_DESC))
  		rt2x00queue_create_tx_descriptor_ht(rt2x00dev, skb, txdesc,
  						   sta, hwrate);
-diff --git a/include/net/mac80211.h b/include/net/mac80211.h
-index d8a1d09a2141..b956edcd864d 100644
 --- a/include/net/mac80211.h
 +++ b/include/net/mac80211.h
-@@ -2721,7 +2721,7 @@ static inline struct ieee80211_rate *
+@@ -2718,7 +2718,7 @@ static inline struct ieee80211_rate *
  ieee80211_get_tx_rate(const struct ieee80211_hw *hw,
  		      const struct ieee80211_tx_info *c)
  {
