@@ -28,15 +28,15 @@ diff --git a/zones.c b/zones.c
 index 2aa7473..57eead0 100644
 --- a/zones.c
 +++ b/zones.c
-@@ -495,6 +495,7 @@
+@@ -627,6 +627,7 @@ print_zone_rule(struct fw3_ipt_handle *h
  	struct fw3_address *msrc;
  	struct fw3_address *mdest;
  	struct fw3_ipt_rule *r;
 +	struct fw3_defaults *defs = &state->defaults;
  
- 	enum fw3_flag t;
- 	char buf[32];
-@@ -614,8 +615,22 @@
+ 	if (!fw3_is_family(zone, handle->family))
+ 		return;
+@@ -712,8 +713,22 @@ print_zone_rule(struct fw3_ipt_handle *h
  				{
  					r = fw3_ipt_rule_new(handle);
  					fw3_ipt_rule_src_dest(r, msrc, mdest);
