@@ -33,16 +33,16 @@
  };
  
  struct mt7530_vlan_entry {
-@@ -196,6 +208,8 @@ struct mt7530_priv {
- 	struct mii_bus		*bus;
- 	struct switch_dev	swdev;
+@@ -199,6 +211,8 @@ struct mt7530_priv {
+ 	/* protect among processes for registers access*/
+ 	struct mutex reg_mutex;
  
 +	u8			mirror_src_port;
 +	u8			mirror_dest_port;
  	bool			global_vlan_enable;
  	struct mt7530_vlan_entry	vlan_entries[MT7530_NUM_VLANS];
  	struct mt7530_port_entry	port_entries[MT7530_NUM_PORTS];
-@@ -509,6 +523,138 @@ mt7530_get_vid(struct switch_dev *dev, c
+@@ -539,6 +553,138 @@ mt7530_get_vid(struct switch_dev *dev, c
  	return 0;
  }
  
@@ -181,15 +181,15 @@
  static void
  mt7530_write_vlan_entry(struct mt7530_priv *priv, int vlan, u16 vid,
  	                    u8 ports, u8 etags)
-@@ -562,6 +708,7 @@ mt7530_apply_config(struct switch_dev *d
+@@ -592,6 +738,7 @@ mt7530_apply_config(struct switch_dev *d
  	int i, j;
  	u8 tag_ports;
  	u8 untag_ports;
 +	bool is_mirror = false;
  
- 	if (!priv->global_vlan_enable) {
- 		for (i = 0; i < MT7530_NUM_PORTS; i++)
-@@ -641,6 +788,31 @@ mt7530_apply_config(struct switch_dev *d
+ 	mutex_lock(&priv->reg_mutex);
+ 
+@@ -675,6 +822,33 @@ mt7530_apply_config(struct switch_dev *d
  		mt7530_w32(priv, REG_ESW_PORT_PPBV1(i), val);
  	}
  
@@ -218,10 +218,12 @@
 +		mt7530_w32(priv, REG_ESW_WT_MAC_MFC, val);
 +	}
 +
++	mutex_unlock(&priv->reg_mutex);
++
  	return 0;
  }
  
-@@ -834,6 +1006,34 @@ static const struct switch_attr mt7530_g
+@@ -895,6 +1069,34 @@ static const struct switch_attr mt7530_g
  		.description = "Get MIB counters for switch",
  		.get = mt7530_sw_get_mib,
  		.set = NULL,
@@ -256,7 +258,7 @@
  	},
  };
  
-@@ -844,6 +1044,20 @@ static const struct switch_attr mt7621_p
+@@ -905,6 +1107,20 @@ static const struct switch_attr mt7621_p
  		.description = "Get MIB counters for port",
  		.get = mt7621_sw_get_port_mib,
  		.set = NULL,
@@ -277,7 +279,7 @@
  	},
  };
  
-@@ -865,6 +1079,20 @@ static const struct switch_attr mt7530_p
+@@ -926,6 +1142,20 @@ static const struct switch_attr mt7530_p
  		.description = "Get MIB counters for port",
  		.get = mt7530_sw_get_port_mib,
  		.set = NULL,

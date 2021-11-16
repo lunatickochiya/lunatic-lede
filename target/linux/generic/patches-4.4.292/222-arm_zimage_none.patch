@@ -26,7 +26,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  
 --- a/arch/arm/boot/compressed/decompress.c
 +++ b/arch/arm/boot/compressed/decompress.c
-@@ -55,6 +55,10 @@ extern char * strstr(const char * s1, co
+@@ -58,6 +58,10 @@ extern char * strstr(const char * s1, co
  #include "../../../../lib/decompress_unlz4.c"
  #endif
  

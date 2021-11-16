@@ -20,7 +20,7 @@ Signed-off-by: Felipe Balbi <felipe.balbi@linux.intel.com>
 
 --- a/drivers/usb/gadget/udc/Kconfig
 +++ b/drivers/usb/gadget/udc/Kconfig
-@@ -298,7 +298,7 @@ config USB_NET2272_DMA
+@@ -299,7 +299,7 @@ config USB_NET2272_DMA
  	  If unsure, say "N" here.  The driver works fine in PIO mode.
  
  config USB_NET2280
@@ -29,7 +29,7 @@ Signed-off-by: Felipe Balbi <felipe.balbi@linux.intel.com>
  	depends on PCI
  	help
  	   NetChip 2280 / 2282 is a PCI based USB peripheral controller which
-@@ -308,6 +308,8 @@ config USB_NET2280
+@@ -309,6 +309,8 @@ config USB_NET2280
  	   (for control transfers) and several endpoints with dedicated
  	   functions.
  
