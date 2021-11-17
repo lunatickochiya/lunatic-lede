@@ -19,6 +19,8 @@ TESTING_KERNEL 需要在make menuconfig的General build options 启用后支持�
 
 最新内核目前仅仅适配了ramips（mt7620 mt7621)测试机型歌华链MT7621（支持到4.4.285） 欢迎pr更多平台支持 
 
+travelmate 同步19.07 使用前先设置好无线密码 然后去travelmate界面扫描无线后 再添加interface（接口） 然后启用，建议启用调试日志
+
 本套源码固件演示地址：https://github.com/lunatickochiya/Actions-Lunatic-LEDE
 
 源码更新交流学习：[点击链接加入群聊](https://jq.qq.com/?_wv=1027&k=5QgVYsC)
