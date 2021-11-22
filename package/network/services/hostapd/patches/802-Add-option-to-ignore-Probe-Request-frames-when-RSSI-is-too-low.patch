@@ -15,11 +15,9 @@ Signed-off-by: John Crispin <john@phrozen.org>
  src/ap/beacon.c       | 4 ++++
  4 files changed, 11 insertions(+)
 
-diff --git a/hostapd/config_file.c b/hostapd/config_file.c
-index af2445563..b3dc8f81a 100644
 --- a/hostapd/config_file.c
 +++ b/hostapd/config_file.c
-@@ -4450,6 +4450,8 @@ static int hostapd_config_fill(struct hostapd_config *conf,
+@@ -4393,6 +4393,8 @@ static int hostapd_config_fill(struct ho
  		conf->rssi_reject_assoc_rssi = atoi(pos);
  	} else if (os_strcmp(buf, "rssi_reject_assoc_timeout") == 0) {
  		conf->rssi_reject_assoc_timeout = atoi(pos);
@@ -27,12 +25,10 @@ index af2445563..b3dc8f81a 100644
 +		conf->rssi_ignore_probe_request = atoi(pos);
  	} else if (os_strcmp(buf, "pbss") == 0) {
  		bss->pbss = atoi(pos);
- 	} else if (os_strcmp(buf, "transition_disable") == 0) {
-diff --git a/hostapd/hostapd.conf b/hostapd/hostapd.conf
-index 21f7b1e13..3ac64a75e 100644
+ #ifdef CONFIG_AIRTIME_POLICY
 --- a/hostapd/hostapd.conf
 +++ b/hostapd/hostapd.conf
-@@ -2735,6 +2735,10 @@ own_ip_addr=127.0.0.1
+@@ -2546,6 +2546,10 @@ own_ip_addr=127.0.0.1
  # threshold (range: 0..255, default=30).
  #rssi_reject_assoc_timeout=30
  
@@ -43,11 +39,9 @@ index 21f7b1e13..3ac64a75e 100644
  ##### Fast Session Transfer (FST) support #####################################
  #
  # The options in this section are only available when the build configuration
-diff --git a/src/ap/ap_config.h b/src/ap/ap_config.h
-index b6937cbc0..f7a344e0e 100644
 --- a/src/ap/ap_config.h
 +++ b/src/ap/ap_config.h
-@@ -1039,6 +1039,7 @@ struct hostapd_config {
+@@ -1000,6 +1000,7 @@ struct hostapd_config {
  
  	int rssi_reject_assoc_rssi;
  	int rssi_reject_assoc_timeout;
@@ -55,13 +49,11 @@ index b6937cbc0..f7a344e0e 100644
  
  #ifdef CONFIG_AIRTIME_POLICY
  	enum {
-diff --git a/src/ap/beacon.c b/src/ap/beacon.c
-index 807fe0ff9..47b260e81 100644
 --- a/src/ap/beacon.c
 +++ b/src/ap/beacon.c
-@@ -818,6 +818,10 @@ void handle_probe_req(struct hostapd_data *hapd,
- 	size_t csa_offs_len;
- 	struct radius_sta rad_info;
+@@ -753,6 +753,10 @@ void handle_probe_req(struct hostapd_dat
+ 		.elems = &elems,
+ 	};
  
 +	if (hapd->iconf->rssi_ignore_probe_request && ssi_signal &&
 +	    ssi_signal < hapd->iconf->rssi_ignore_probe_request)
