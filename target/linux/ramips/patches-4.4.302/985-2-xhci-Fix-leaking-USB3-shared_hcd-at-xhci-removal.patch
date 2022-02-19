@@ -1,0 +1,69 @@
+--- a/drivers/usb/host/xhci-mtk.c
++++ b/drivers/usb/host/xhci-mtk.c
+@@ -687,14 +687,16 @@
+ 	struct xhci_hcd_mtk *mtk = platform_get_drvdata(dev);
+ 	struct usb_hcd	*hcd = mtk->hcd;
+ 	struct xhci_hcd	*xhci = hcd_to_xhci(hcd);
++	struct usb_hcd  *shared_hcd = xhci->shared_hcd;
+ 
+-	usb_remove_hcd(xhci->shared_hcd);
++	usb_remove_hcd(shared_hcd);
++	xhci->shared_hcd = NULL;
+ 	xhci_mtk_phy_power_off(mtk);
+ 	xhci_mtk_phy_exit(mtk);
+ 	device_init_wakeup(&dev->dev, false);
+ 
+ 	usb_remove_hcd(hcd);
+-	usb_put_hcd(xhci->shared_hcd);
++	usb_put_hcd(shared_hcd);
+ 	usb_put_hcd(hcd);
+ 	xhci_mtk_sch_exit(mtk);
+ 	xhci_mtk_clks_disable(mtk);
+diff --git a/drivers/usb/host/xhci-pci.c b/drivers/usb/host/xhci-pci.c
+index 01c5705..1fb448c 100644
+--- a/drivers/usb/host/xhci-pci.c
++++ b/drivers/usb/host/xhci-pci.c
+@@ -380,6 +380,7 @@ static void xhci_pci_remove(struct pci_dev *dev)
+ 	if (xhci->shared_hcd) {
+ 		usb_remove_hcd(xhci->shared_hcd);
+ 		usb_put_hcd(xhci->shared_hcd);
++		xhci->shared_hcd = NULL;
+ 	}
+ 
+ 	/* Workaround for spurious wakeups at shutdown with HSW */
+diff --git a/drivers/usb/host/xhci-plat.c b/drivers/usb/host/xhci-plat.c
+index 32b5574..ef09cb0 100644
+--- a/drivers/usb/host/xhci-plat.c
++++ b/drivers/usb/host/xhci-plat.c
+@@ -362,14 +362,16 @@ static int xhci_plat_remove(struct platform_device *dev)
+ 	struct usb_hcd	*hcd = platform_get_drvdata(dev);
+ 	struct xhci_hcd	*xhci = hcd_to_xhci(hcd);
+ 	struct clk *clk = xhci->clk;
++	struct usb_hcd *shared_hcd = xhci->shared_hcd;
+ 
+ 	xhci->xhc_state |= XHCI_STATE_REMOVING;
+ 
+-	usb_remove_hcd(xhci->shared_hcd);
++	usb_remove_hcd(shared_hcd);
++	xhci->shared_hcd = NULL;
+ 	usb_phy_shutdown(hcd->usb_phy);
+ 
+ 	usb_remove_hcd(hcd);
+-	usb_put_hcd(xhci->shared_hcd);
++	usb_put_hcd(shared_hcd);
+ 
+ 	clk_disable_unprepare(clk);
+ 	clk_disable_unprepare(reg_clk);
+diff --git a/drivers/usb/host/xhci.c b/drivers/usb/host/xhci.c
+index 0420eef..c928dbb 100644
+--- a/drivers/usb/host/xhci.c
++++ b/drivers/usb/host/xhci.c
+@@ -719,8 +719,6 @@ static void xhci_stop(struct usb_hcd *hcd)
+ 
+ 	/* Only halt host and free memory after both hcds are removed */
+ 	if (!usb_hcd_is_primary_hcd(hcd)) {
+-		/* usb core will free this hcd shortly, unset pointer */
+-		xhci->shared_hcd = NULL;
+ 		mutex_unlock(&xhci->mutex);
+ 		return;
+ 	}
