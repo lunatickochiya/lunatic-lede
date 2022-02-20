@@ -28,8 +28,6 @@
 		usb {
 			label = "ghl-r-001:blue:usb";
 			gpios = <&gpio0 15 1>;
-			trigger-sources = <&xhci_ehci_port1>, <&ehci_port2>;
-			linux,default-trigger = "usbport";
 		};
 	};
 
