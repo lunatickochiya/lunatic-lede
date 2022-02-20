@@ -63,7 +63,7 @@ Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
  obj-$(CONFIG_USB_U132_HCD)	+= u132-hcd.o
 --- /dev/null
 +++ b/drivers/usb/host/xhci-mtk-sch.c
-@@ -0,0 +1,415 @@
+@@ -0,0 +1,431 @@
 +/*
 + * Copyright (c) 2015 MediaTek Inc.
 + * Author:
@@ -188,7 +188,9 @@ Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 +		}
 +
 +		if (ep_type == ISOC_IN_EP || ep_type == ISOC_OUT_EP) {
-+			if (esit_pkts <= sch_ep->esit)
++			if (sch_ep->esit == 1)
++				sch_ep->pkts = esit_pkts;
++			else if (esit_pkts <= sch_ep->esit)
 +				sch_ep->pkts = 1;
 +			else
 +				sch_ep->pkts = roundup_pow_of_two(esit_pkts)
@@ -341,10 +343,15 @@ Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 +		return false;
 +
 +	/*
-+	 * for LS & FS periodic endpoints which its device don't attach
-+	 * to TT are also ignored, root-hub will schedule them directly
++	 * for LS & FS periodic endpoints which its device is not behind
++	 * a TT are also ignored, root-hub will schedule them directly,
++	 * but need set @bpkts field of endpoint context to 1.
 +	 */
 +	if (is_fs_or_ls(speed) && !has_tt)
++		return false;
++
++	/* skip endpoint with zero maxpkt */
++	if (usb_endpoint_maxp(&ep->desc) == 0)
 +		return false;
 +
 +	return true;
@@ -405,8 +412,17 @@ Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 +		GET_MAX_PACKET(usb_endpoint_maxp(&ep->desc)),
 +		usb_endpoint_dir_in(&ep->desc), ep);
 +
-+	if (!need_bw_sch(ep, udev->speed, slot_ctx->tt_info & TT_SLOT))
++	if (!need_bw_sch(ep, udev->speed, slot_ctx->tt_info & TT_SLOT)) {
++		/*
++		 * set @bpkts to 1 if it is LS or FS periodic endpoint, and its
++		 * device does not connected through an external HS hub
++		 */
++		if (usb_endpoint_xfer_int(&ep->desc)
++			|| usb_endpoint_xfer_isoc(&ep->desc))
++			ep_ctx->reserved[0] |= cpu_to_le32(EP_BPKTS(1));
++
 +		return 0;
++	}
 +
 +	bw_index = get_bw_index(xhci, udev, ep);
 +	sch_bw = &sch_array[bw_index];
@@ -481,7 +497,7 @@ Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 +EXPORT_SYMBOL_GPL(xhci_mtk_drop_ep_quirk);
 --- /dev/null
 +++ b/drivers/usb/host/xhci-mtk.c
-@@ -0,0 +1,763 @@
+@@ -0,0 +1,792 @@
 +/*
 + * MediaTek xHCI Host Controller Driver
 + *
@@ -954,6 +970,13 @@ Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 +	xhci->quirks |= XHCI_SPURIOUS_SUCCESS;
 +	if (mtk->lpm_support)
 +		xhci->quirks |= XHCI_LPM_SUPPORT;
++
++	/*
++	 * MTK xHCI 0.96: PSA is 1 by default even if doesn't support stream,
++	 * and it's 3 when support it.
++	 */
++	if (xhci->hci_version < 0x100 && HCC_MAX_PSA(xhci->hcc_params) == 4)
++		xhci->quirks |= XHCI_BROKEN_STREAMS;
 +}
 +
 +/* called during probe() after chip reset completes */
@@ -1044,8 +1067,10 @@ Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 +		goto disable_ldos;
 +
 +	irq = platform_get_irq(pdev, 0);
-+	if (irq < 0)
++	if (irq < 0) {
++		ret = irq;
 +		goto disable_clk;
++	}
 +
 +	/* Initialize dma_mask and coherent_dma_mask to 32-bits */
 +	ret = dma_set_coherent_mask(dev, DMA_BIT_MASK(32));
@@ -1114,12 +1139,13 @@ Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 +		goto power_off_phys;
 +	}
 +
-+	if (HCC_MAX_PSA(xhci->hcc_params) >= 4)
-+		xhci->shared_hcd->can_do_streams = 1;
-+
 +	ret = usb_add_hcd(hcd, irq, IRQF_SHARED);
 +	if (ret)
 +		goto put_usb3_hcd;
++
++	if (HCC_MAX_PSA(xhci->hcc_params) >= 4 &&
++	    !(xhci->quirks & XHCI_BROKEN_STREAMS))
++		xhci->shared_hcd->can_do_streams = 1;
 +
 +	ret = usb_add_hcd(xhci->shared_hcd, irq, IRQF_SHARED);
 +	if (ret)
@@ -1179,10 +1205,24 @@ Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 +	return 0;
 +}
 +
-+#ifdef CONFIG_PM_SLEEP
-+static int xhci_mtk_suspend(struct device *dev)
++/*
++ * if ip sleep fails, and all clocks are disabled, access register will hang
++ * AHB bus, so stop polling roothubs to avoid regs access on bus suspend.
++ * and no need to check whether ip sleep failed or not; this will cause SPM
++ * to wake up system immediately after system suspend complete if ip sleep
++ * fails, it is what we wanted.
++ */
++static int __maybe_unused xhci_mtk_suspend(struct device *dev)
 +{
 +	struct xhci_hcd_mtk *mtk = dev_get_drvdata(dev);
++	struct usb_hcd *hcd = mtk->hcd;
++	struct xhci_hcd *xhci = hcd_to_xhci(hcd);
++
++	xhci_dbg(xhci, "%s: stop port polling\n", __func__);
++	clear_bit(HCD_FLAG_POLL_RH, &hcd->flags);
++	del_timer_sync(&hcd->rh_timer);
++	clear_bit(HCD_FLAG_POLL_RH, &xhci->shared_hcd->flags);
++	del_timer_sync(&xhci->shared_hcd->rh_timer);
 +
 +	xhci_mtk_host_disable(mtk);
 +	xhci_mtk_phy_power_off(mtk);
@@ -1191,24 +1231,29 @@ Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 +	return 0;
 +}
 +
-+static int xhci_mtk_resume(struct device *dev)
++static int __maybe_unused xhci_mtk_resume(struct device *dev)
 +{
 +	struct xhci_hcd_mtk *mtk = dev_get_drvdata(dev);
++	struct usb_hcd *hcd = mtk->hcd;
++	struct xhci_hcd *xhci = hcd_to_xhci(hcd);
 +
 +	usb_wakeup_disable(mtk);
 +	xhci_mtk_clks_enable(mtk);
 +	xhci_mtk_phy_power_on(mtk);
 +	xhci_mtk_host_enable(mtk);
++
++	xhci_dbg(xhci, "%s: restart port polling\n", __func__);
++	set_bit(HCD_FLAG_POLL_RH, &xhci->shared_hcd->flags);
++	usb_hcd_poll_rh_status(xhci->shared_hcd);
++	set_bit(HCD_FLAG_POLL_RH, &hcd->flags);
++	usb_hcd_poll_rh_status(hcd);
 +	return 0;
 +}
 +
 +static const struct dev_pm_ops xhci_mtk_pm_ops = {
 +	SET_SYSTEM_SLEEP_PM_OPS(xhci_mtk_suspend, xhci_mtk_resume)
 +};
-+#define DEV_PM_OPS	(&xhci_mtk_pm_ops)
-+#else
-+#define DEV_PM_OPS	NULL
-+#endif /* CONFIG_PM */
++#define DEV_PM_OPS IS_ENABLED(CONFIG_PM) ? &xhci_mtk_pm_ops : NULL
 +
 +#ifdef CONFIG_OF
 +static const struct of_device_id mtk_xhci_of_match[] = {
@@ -1425,7 +1470,7 @@ Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
  	u32 maxp, total_packet_count;
  
 -	if (xhci->hci_version < 0x100)
-+	/* MTK xHCI is mostly 0.97 but contains some features from 1.0 */
++	/* MTK xHCI 0.96 contains some features from 1.0 */
 +	if (xhci->hci_version < 0x100 && !(xhci->quirks & XHCI_MTK_HOST))
  		return ((td_total_len - transferred) >> 10);
  
@@ -1437,8 +1482,8 @@ Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
  	    trb_buff_len == td_total_len)
  		return 0;
  
-+	/* for MTK xHCI, TD size doesn't include this TRB */
-+	if (xhci->quirks & XHCI_MTK_HOST)
++	/* for MTK xHCI 0.96, TD size include this TRB, but not in 1.x */
++	if ((xhci->quirks & XHCI_MTK_HOST) && (xhci->hci_version < 0x100))
 +		trb_buff_len = 0;
 +
 +	maxp = GET_MAX_PACKET(usb_endpoint_maxp(&urb->ep->desc));
