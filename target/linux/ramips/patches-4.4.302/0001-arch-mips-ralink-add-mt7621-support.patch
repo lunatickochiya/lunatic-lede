@@ -1,27 +1,37 @@
-From 450b6e8257e22708173d0c1c86d34394fba0c5eb Mon Sep 17 00:00:00 2001
+From 1df7addb9671ace5fbae4daa45b0755cebefb1dc Mon Sep 17 00:00:00 2001
 From: John Crispin <blogic@openwrt.org>
-Date: Mon, 7 Dec 2015 17:08:31 +0100
-Subject: [PATCH 01/53] arch: mips: ralink: add mt7621 support
+Date: Mon, 4 Jan 2016 20:23:55 +0100
+Subject: MIPS: ralink: add MT7621 support
+
+MT7621 is based on a 1004k core. This patch adds support for the SoC. The
+timer and IRQ is just boiler plate as GIC has recently been moved to
+generic places in the kernel and just works.
 
 Signed-off-by: John Crispin <blogic@openwrt.org>
+Cc: linux-mips@linux-mips.org
+Patchwork: https://patchwork.linux-mips.org/patch/11990/
+Signed-off-by: Ralf Baechle <ralf@linux-mips.org>
 ---
- arch/mips/include/asm/mach-ralink/irq.h    |    9 +
- arch/mips/include/asm/mach-ralink/mt7621.h |   39 ++++
- arch/mips/kernel/mips-cm.c                 |    4 +-
- arch/mips/kernel/vmlinux.lds.S             |    1 +
- arch/mips/ralink/Kconfig                   |   18 ++
- arch/mips/ralink/Makefile                  |    7 +-
- arch/mips/ralink/Platform                  |    5 +
- arch/mips/ralink/irq-gic.c                 |  268 ++++++++++++++++++++++++++++
- arch/mips/ralink/malta-amon.c              |   81 +++++++++
- arch/mips/ralink/mt7621.c                  |  209 ++++++++++++++++++++++
- 10 files changed, 638 insertions(+), 3 deletions(-)
+ arch/mips/include/asm/mach-ralink/irq.h            |   9 +
+ arch/mips/include/asm/mach-ralink/mt7621.h         |  38 ++++
+ .../asm/mach-ralink/mt7621/cpu-feature-overrides.h |  65 ++++++
+ arch/mips/ralink/Kconfig                           |  11 +
+ arch/mips/ralink/Makefile                          |   8 +-
+ arch/mips/ralink/Platform                          |   5 +
+ arch/mips/ralink/irq-gic.c                         |  25 +++
+ arch/mips/ralink/mt7621.c                          | 226 +++++++++++++++++++++
+ arch/mips/ralink/timer-gic.c                       |  24 +++
+ 9 files changed, 410 insertions(+), 1 deletion(-)
  create mode 100644 arch/mips/include/asm/mach-ralink/irq.h
  create mode 100644 arch/mips/include/asm/mach-ralink/mt7621.h
+ create mode 100644 arch/mips/include/asm/mach-ralink/mt7621/cpu-feature-overrides.h
  create mode 100644 arch/mips/ralink/irq-gic.c
- create mode 100644 arch/mips/ralink/malta-amon.c
  create mode 100644 arch/mips/ralink/mt7621.c
+ create mode 100644 arch/mips/ralink/timer-gic.c
 
+diff --git a/arch/mips/include/asm/mach-ralink/irq.h b/arch/mips/include/asm/mach-ralink/irq.h
+new file mode 100644
+index 0000000000000..4321865e04b93
 --- /dev/null
 +++ b/arch/mips/include/asm/mach-ralink/irq.h
 @@ -0,0 +1,9 @@
@@ -34,19 +44,18 @@ Signed-off-by: John Crispin <blogic@openwrt.org>
 +#include_next <irq.h>
 +
 +#endif
+diff --git a/arch/mips/include/asm/mach-ralink/mt7621.h b/arch/mips/include/asm/mach-ralink/mt7621.h
+new file mode 100644
+index 0000000000000..610b61e3f9df1
 --- /dev/null
 +++ b/arch/mips/include/asm/mach-ralink/mt7621.h
-@@ -0,0 +1,42 @@
+@@ -0,0 +1,38 @@
 +/*
 + * This program is free software; you can redistribute it and/or modify it
 + * under the terms of the GNU General Public License version 2 as published
 + * by the Free Software Foundation.
 + *
-+ * Parts of this file are based on Ralink's 2.6.21 BSP
-+ *
-+ * Copyright (C) 2008-2011 Gabor Juhos <juhosg@openwrt.org>
-+ * Copyright (C) 2008 Imre Kaloz <kaloz@openwrt.org>
-+ * Copyright (C) 2013 John Crispin <blogic@openwrt.org>
++ * Copyright (C) 2015 John Crispin <blogic@openwrt.org>
 + */
 +
 +#ifndef _MT7621_REGS_H_
@@ -79,16 +88,79 @@ Signed-off-by: John Crispin <blogic@openwrt.org>
 +#define MIPS_GIC_IRQ_BASE           (MIPS_CPU_IRQ_BASE + 8)
 +
 +#endif
---- a/arch/mips/kernel/vmlinux.lds.S
-+++ b/arch/mips/kernel/vmlinux.lds.S
-@@ -53,6 +53,7 @@ SECTIONS
- 	/* read-only */
- 	_text = .;	/* Text and read-only data */
- 	.text : {
-+		/*. = . + 0x8000; */
- 		TEXT_TEXT
- 		SCHED_TEXT
- 		LOCK_TEXT
+diff --git a/arch/mips/include/asm/mach-ralink/mt7621/cpu-feature-overrides.h b/arch/mips/include/asm/mach-ralink/mt7621/cpu-feature-overrides.h
+new file mode 100644
+index 0000000000000..15db1b330fe82
+--- /dev/null
++++ b/arch/mips/include/asm/mach-ralink/mt7621/cpu-feature-overrides.h
+@@ -0,0 +1,65 @@
++/*
++ * Ralink MT7621 specific CPU feature overrides
++ *
++ * Copyright (C) 2008-2009 Gabor Juhos <juhosg@openwrt.org>
++ * Copyright (C) 2008 Imre Kaloz <kaloz@openwrt.org>
++ * Copyright (C) 2015 Felix Fietkau <nbd@openwrt.org>
++ *
++ * This file was derived from: include/asm-mips/cpu-features.h
++ *	Copyright (C) 2003, 2004 Ralf Baechle
++ *	Copyright (C) 2004 Maciej W. Rozycki
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms of the GNU General Public License version 2 as published
++ * by the Free Software Foundation.
++ *
++ */
++#ifndef _MT7621_CPU_FEATURE_OVERRIDES_H
++#define _MT7621_CPU_FEATURE_OVERRIDES_H
++
++#define cpu_has_tlb		1
++#define cpu_has_4kex		1
++#define cpu_has_3k_cache	0
++#define cpu_has_4k_cache	1
++#define cpu_has_tx39_cache	0
++#define cpu_has_sb1_cache	0
++#define cpu_has_fpu		0
++#define cpu_has_32fpr		0
++#define cpu_has_counter		1
++#define cpu_has_watch		1
++#define cpu_has_divec		1
++
++#define cpu_has_prefetch	1
++#define cpu_has_ejtag		1
++#define cpu_has_llsc		1
++
++#define cpu_has_mips16		1
++#define cpu_has_mdmx		0
++#define cpu_has_mips3d		0
++#define cpu_has_smartmips	0
++
++#define cpu_has_mips32r1	1
++#define cpu_has_mips32r2	1
++#define cpu_has_mips64r1	0
++#define cpu_has_mips64r2	0
++
++#define cpu_has_dsp		1
++#define cpu_has_dsp2		0
++#define cpu_has_mipsmt		1
++
++#define cpu_has_64bits		0
++#define cpu_has_64bit_zero_reg	0
++#define cpu_has_64bit_gp_regs	0
++#define cpu_has_64bit_addresses	0
++
++#define cpu_dcache_line_size()	32
++#define cpu_icache_line_size()	32
++
++#define cpu_has_dc_aliases	0
++#define cpu_has_vtag_icache	0
++
++#define cpu_has_rixi		0
++#define cpu_has_tlbinv		0
++#define cpu_has_userlocal	1
++
++#endif /* _MT7621_CPU_FEATURE_OVERRIDES_H */
+diff --git a/arch/mips/ralink/Kconfig b/arch/mips/ralink/Kconfig
+index c578c5d9d0f49..016d26e3475a6 100644
 --- a/arch/mips/ralink/Kconfig
 +++ b/arch/mips/ralink/Kconfig
 @@ -12,6 +12,11 @@ config RALINK_ILL_ACC
@@ -103,7 +175,7 @@ Signed-off-by: John Crispin <blogic@openwrt.org>
  choice
  	prompt "Ralink SoC selection"
  	default SOC_RT305X
-@@ -34,6 +39,16 @@ choice
+@@ -38,6 +39,16 @@ choice
  	config SOC_MT7620
  		bool "MT7620/8"
  
@@ -120,17 +192,8 @@ Signed-off-by: John Crispin <blogic@openwrt.org>
  endchoice
  
  choice
-@@ -65,6 +80,10 @@ choice
- 		depends on SOC_MT7620
- 		select BUILTIN_DTB
- 
-+	config DTB_MT7621_EVAL
-+		bool "MT7621 eval kit"
-+		depends on SOC_MT7621
-+
- endchoice
- 
- endif
+diff --git a/arch/mips/ralink/Makefile b/arch/mips/ralink/Makefile
+index 06c315f70a212..0d1795a0321e3 100644
 --- a/arch/mips/ralink/Makefile
 +++ b/arch/mips/ralink/Makefile
 @@ -6,16 +6,24 @@
@@ -159,9 +222,11 @@ Signed-off-by: John Crispin <blogic@openwrt.org>
  
  obj-$(CONFIG_EARLY_PRINTK) += early_printk.o
  
+diff --git a/arch/mips/ralink/Platform b/arch/mips/ralink/Platform
+index 6d9c8c499f988..6095fcc334f42 100644
 --- a/arch/mips/ralink/Platform
 +++ b/arch/mips/ralink/Platform
-@@ -27,3 +27,8 @@ cflags-$(CONFIG_SOC_RT3883)	+= -I$(srctr
+@@ -27,3 +27,8 @@ cflags-$(CONFIG_SOC_RT3883)	+= -I$(srctree)/arch/mips/include/asm/mach-ralink/rt
  #
  load-$(CONFIG_SOC_MT7620)	+= 0xffffffff80000000
  cflags-$(CONFIG_SOC_MT7620)	+= -I$(srctree)/arch/mips/include/asm/mach-ralink/mt7620
@@ -170,9 +235,21 @@ Signed-off-by: John Crispin <blogic@openwrt.org>
 +#
 +load-$(CONFIG_SOC_MT7621)	+= 0xffffffff80001000
 +cflags-$(CONFIG_SOC_MT7621)	+= -I$(srctree)/arch/mips/include/asm/mach-ralink/mt7621
+diff --git a/arch/mips/ralink/irq-gic.c b/arch/mips/ralink/irq-gic.c
+new file mode 100644
+index 0000000000000..50d6c55ab1de0
 --- /dev/null
 +++ b/arch/mips/ralink/irq-gic.c
-@@ -0,0 +1,18 @@
+@@ -0,0 +1,25 @@
++/*
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms of the GNU General Public License version 2 as published
++ * by the Free Software Foundation.
++ *
++ * Copyright (C) 2015 Nikolay Martynov <mar.kolya@gmail.com>
++ * Copyright (C) 2015 John Crispin <blogic@openwrt.org>
++ */
++
 +#include <linux/init.h>
 +
 +#include <linux/of.h>
@@ -185,25 +262,23 @@ Signed-off-by: John Crispin <blogic@openwrt.org>
 +}
 +EXPORT_SYMBOL_GPL(get_c0_perfcount_int);
 +
-+void __init
-+arch_init_irq(void)
++void __init arch_init_irq(void)
 +{
 +	irqchip_init();
 +}
-+
+diff --git a/arch/mips/ralink/mt7621.c b/arch/mips/ralink/mt7621.c
+new file mode 100644
+index 0000000000000..e9b9fa3e1e51b
 --- /dev/null
 +++ b/arch/mips/ralink/mt7621.c
-@@ -0,0 +1,223 @@
+@@ -0,0 +1,226 @@
 +/*
 + * This program is free software; you can redistribute it and/or modify it
 + * under the terms of the GNU General Public License version 2 as published
 + * by the Free Software Foundation.
 + *
-+ * Parts of this file are based on Ralink's 2.6.21 BSP
-+ *
-+ * Copyright (C) 2008-2011 Gabor Juhos <juhosg@openwrt.org>
-+ * Copyright (C) 2008 Imre Kaloz <kaloz@openwrt.org>
-+ * Copyright (C) 2013 John Crispin <blogic@openwrt.org>
++ * Copyright (C) 2015 Nikolay Martynov <mar.kolya@gmail.com>
++ * Copyright (C) 2015 John Crispin <blogic@openwrt.org>
 + */
 +
 +#include <linux/kernel.h>
@@ -311,7 +386,8 @@ Signed-off-by: John Crispin <blogic@openwrt.org>
 +	{ 0 }
 +};
 +
-+phys_addr_t mips_cpc_default_phys_base() {
++phys_addr_t mips_cpc_default_phys_base(void)
++{
 +	panic("Cannot detect cpc address");
 +}
 +
@@ -339,11 +415,14 @@ Signed-off-by: John Crispin <blogic@openwrt.org>
 +		fbdiv = ((rt_sysc_r32(0x648) >> 4) & 0x7F) + 1;
 +		syscfg = rt_sysc_r32(SYSC_REG_SYSCFG);
 +		xtal_mode = (syscfg >> 6) & 0x7;
-+		if(xtal_mode >= 6) { //25Mhz Xtal
++		if (xtal_mode >= 6) {
++			/* 25Mhz Xtal */
 +			cpu_clk = 25 * fbdiv * 1000 * 1000;
-+		} else if(xtal_mode >=3) { //40Mhz Xtal
++		} else if (xtal_mode >= 3) {
++			/* 40Mhz Xtal */
 +			cpu_clk = 40 * fbdiv * 1000 * 1000;
-+		} else { // 20Mhz Xtal
++		} else {
++			/* 20Mhz Xtal */
 +			cpu_clk = 20 * fbdiv * 1000 * 1000;
 +		}
 +		break;
@@ -396,18 +475,20 @@ Signed-off-by: John Crispin <blogic@openwrt.org>
 +	mips_cpc_probe();
 +
 +	if (mips_cm_numiocu()) {
-+		/* mips_cm_probe() wipes out bootloader
-+		   config for CM regions and we have to configure them
-+		   again. This SoC cannot talk to pamlbus devices
-+		   witout proper iocu region set up.
-+
-+		   FIXME: it would be better to do this with values
-+		   from DT, but we need this very early because
-+		   without this we cannot talk to pretty much anything
-+		   including serial.
-+		*/
++		/*
++		 * mips_cm_probe() wipes out bootloader
++		 * config for CM regions and we have to configure them
++		 * again. This SoC cannot talk to pamlbus devices
++		 * witout proper iocu region set up.
++		 *
++		 * FIXME: it would be better to do this with values
++		 * from DT, but we need this very early because
++		 * without this we cannot talk to pretty much anything
++		 * including serial.
++		 */
 +		write_gcr_reg0_base(MT7621_PALMBUS_BASE);
-+		write_gcr_reg0_mask(~MT7621_PALMBUS_SIZE | CM_GCR_REGn_MASK_CMTGT_IOCU0);
++		write_gcr_reg0_mask(~MT7621_PALMBUS_SIZE |
++				    CM_GCR_REGn_MASK_CMTGT_IOCU0);
 +	}
 +
 +	if (!register_cps_smp_ops())
@@ -417,9 +498,21 @@ Signed-off-by: John Crispin <blogic@openwrt.org>
 +	if (!register_vsmp_smp_ops())
 +		return;
 +}
+diff --git a/arch/mips/ralink/timer-gic.c b/arch/mips/ralink/timer-gic.c
+new file mode 100644
+index 0000000000000..5b4f186bcf958
 --- /dev/null
 +++ b/arch/mips/ralink/timer-gic.c
-@@ -0,0 +1,15 @@
+@@ -0,0 +1,24 @@
++/*
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms of the GNU General Public License version 2 as published
++ * by the Free Software Foundation.
++ *
++ * Copyright (C) 2015 Nikolay Martynov <mar.kolya@gmail.com>
++ * Copyright (C) 2015 John Crispin <blogic@openwrt.org>
++ */
++
 +#include <linux/init.h>
 +
 +#include <linux/of.h>
@@ -435,3 +528,6 @@ Signed-off-by: John Crispin <blogic@openwrt.org>
 +	of_clk_init(NULL);
 +	clocksource_probe();
 +}
+-- 
+cgit 1.2.3-1.el7
+
