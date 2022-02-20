@@ -68,7 +68,7 @@
 			reg = <0x600 0x100>;
 
 			interrupt-parent = <&gic>;
-			interrupts = <GIC_SHARED 12 IRQ_TYPE_LEVEL_HIGH>;
+			interrupts = <0 12 4>;
 
 			gpio0: bank@0 {
 				reg = <0>;
@@ -120,7 +120,7 @@
 			reset-names = "i2s";
 
 			interrupt-parent = <&gic>;
-			interrupts = <GIC_SHARED 16 IRQ_TYPE_LEVEL_HIGH>;
+			interrupts = <0 16 4>;
 
 			txdma-req = <2>;
 			rxdma-req = <3>;
@@ -155,7 +155,7 @@
 			clock-frequency = <50000000>;
 
 			interrupt-parent = <&gic>;
-			interrupts = <GIC_SHARED 26 IRQ_TYPE_LEVEL_HIGH>;
+			interrupts = <0 26 4>;
 
 			reg-shift = <2>;
 			reg-io-width = <4>;
@@ -169,7 +169,7 @@
 			clock-frequency = <50000000>;
 
 			interrupt-parent = <&gic>;
-			interrupts = <GIC_SHARED 27 IRQ_TYPE_LEVEL_HIGH>;
+			interrupts = <0 27 4>;
 
 			reg-shift = <2>;
 			reg-io-width = <4>;
@@ -187,7 +187,7 @@
 			clock-frequency = <50000000>;
 
 			interrupt-parent = <&gic>;
-			interrupts = <GIC_SHARED 28 IRQ_TYPE_LEVEL_HIGH>;
+			interrupts = <0 28 4>;
 
 			reg-shift = <2>;
 			reg-io-width = <4>;
@@ -359,7 +359,7 @@
 		reg = <0x1E130000 0x4000>;
 
 		interrupt-parent = <&gic>;
-		interrupts = <GIC_SHARED 20 IRQ_TYPE_LEVEL_HIGH>;
+		interrupts = <0 20 4>;
 	};
 
 	xhci: xhci@1E1C0000 {
@@ -373,7 +373,7 @@
 		clock-names = "sys_ck";
 
 		interrupt-parent = <&gic>;
-		interrupts = <GIC_SHARED 22 IRQ_TYPE_LEVEL_HIGH>;
+		interrupts = <0 22 4>;
 	};
 
 	gic: interrupt-controller@1fbc0000 {
@@ -387,7 +387,7 @@
 
 		timer {
 			compatible = "mti,gic-timer";
-			interrupts = <GIC_LOCAL 1 IRQ_TYPE_NONE>;
+			interrupts = <1 1 0>;
 			clocks = <&cpuclock>;
 		};
 	};
@@ -414,7 +414,7 @@
 		reset-names = "fe", "eth";
 
 		interrupt-parent = <&gic>;
-		interrupts = <GIC_SHARED 3 IRQ_TYPE_LEVEL_HIGH>;
+		interrupts = <0 3 4>;
 
 		mediatek,switch = <&gsw>;
 
@@ -433,7 +433,7 @@
 		compatible = "mediatek,mt7621-gsw";
 		reg = <0x1e110000 0x8000>;
 		interrupt-parent = <&gic>;
-		interrupts = <GIC_SHARED 23 IRQ_TYPE_LEVEL_HIGH>;
+		interrupts = <0 23 4>;
 	};
 
 	pcie: pcie@1e140000 {
@@ -456,9 +456,9 @@
 		>;
 
 		interrupt-parent = <&gic>;
-		interrupts = <GIC_SHARED 4 IRQ_TYPE_LEVEL_HIGH
-				GIC_SHARED 24 IRQ_TYPE_LEVEL_HIGH
-				GIC_SHARED 25 IRQ_TYPE_LEVEL_HIGH>;
+		interrupts = <0 4 4
+				0 24 4
+				0 25 4>;
 
 		status = "disabled";
 
