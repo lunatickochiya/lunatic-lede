@@ -16,7 +16,6 @@
 #include <linux/platform_device.h>
 #include <linux/if_vlan.h>
 #include <linux/of_net.h>
-#include <linux/delay.h>
 
 #include <asm/mach-ralink/ralink_regs.h>
 
@@ -143,8 +142,8 @@ static void mt7621_init_data(struct fe_soc_data *data,
 		FE_FLAG_HAS_SWITCH | FE_FLAG_JUMBO_FRAME;
 
 	netdev->hw_features = NETIF_F_IP_CSUM | NETIF_F_RXCSUM |
-		NETIF_F_HW_VLAN_CTAG_TX | NETIF_F_SG |
-		NETIF_F_IPV6_CSUM;
+		NETIF_F_HW_VLAN_CTAG_TX | NETIF_F_SG | NETIF_F_TSO |
+		NETIF_F_TSO6 | NETIF_F_IPV6_CSUM;
 }
 
 static void mt7621_set_mac(struct fe_priv *priv, unsigned char *mac)
@@ -156,30 +155,6 @@ static void mt7621_set_mac(struct fe_priv *priv, unsigned char *mac)
 	fe_w32((mac[2] << 24) | (mac[3] << 16) | (mac[4] << 8) | mac[5],
 	       GSW_REG_GDMA1_MAC_ADRL);
 	spin_unlock_irqrestore(&priv->page_lock, flags);
-}
-
-static void mt7621_reset_ports(struct fe_priv *priv)
-{
-	struct mt7620_gsw *gsw = priv->soc->swpriv;
-	u8 i;
-	u32 val;
-
-	/* Disable all ports */
-	for (i = 0; i <= 4; i++) {
-		val = _mt7620_mii_read(gsw, i, 0x0);
-		val |= BIT(11);
-		_mt7620_mii_write(gsw, i, 0x0, val);
-	}
-
-	/* Allow ports a (short) time to settle */
-	udelay(1000);
-
-	/* Enable ports */
-	for (i = 0; i <= 4; i++) {
-		val = _mt7620_mii_read(gsw, i, 0);
-		val &= ~BIT(11);
-		_mt7620_mii_write(gsw, i, 0, val);
-	}
 }
 
 static struct fe_soc_data mt7621_data = {
@@ -200,7 +175,6 @@ static struct fe_soc_data mt7621_data = {
 	.mdio_read = mt7620_mdio_read,
 	.mdio_write = mt7620_mdio_write,
 	.mdio_adjust_link = mt7620_mdio_link_adjust,
-	.reset_ports = mt7621_reset_ports,
 };
 
 const struct of_device_id of_fe_match[] = {

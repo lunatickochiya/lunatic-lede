@@ -544,7 +544,7 @@ static inline u32 fe_empty_txd(struct fe_tx_ring *ring)
 	barrier();
 	return (u32)(ring->tx_ring_size -
 			((ring->tx_next_idx - ring->tx_free_idx) &
-			 (ring->tx_ring_size - 1)) - 1);
+			 (ring->tx_ring_size - 1)));
 }
 
 static int fe_tx_map_dma(struct sk_buff *skb, struct net_device *dev,
@@ -1426,9 +1426,6 @@ static void fe_reset_pending(struct fe_priv *priv)
 		dev_close(dev);
 	}
 	rtnl_unlock();
-
-	if (priv->soc->reset_ports)
-		priv->soc->reset_ports(priv);
 }
 
 static const struct fe_work_t fe_work[] = {
