@@ -1,3 +1,5 @@
+diff --git a/drivers/net/ethernet/mediatek/mt7530.c b/drivers/net/ethernet/mediatek/mt7530.c
+index 5216cb5c66..9acea3bc84 100644
 --- a/drivers/net/ethernet/mediatek/mt7530.c
 +++ b/drivers/net/ethernet/mediatek/mt7530.c
 @@ -51,6 +51,11 @@
@@ -33,16 +35,16 @@
  };
  
  struct mt7530_vlan_entry {
-@@ -199,6 +211,8 @@ struct mt7530_priv {
- 	/* protect among processes for registers access*/
- 	struct mutex reg_mutex;
+@@ -196,6 +208,8 @@ struct mt7530_priv {
+ 	struct mii_bus		*bus;
+ 	struct switch_dev	swdev;
  
 +	u8			mirror_src_port;
 +	u8			mirror_dest_port;
  	bool			global_vlan_enable;
  	struct mt7530_vlan_entry	vlan_entries[MT7530_NUM_VLANS];
  	struct mt7530_port_entry	port_entries[MT7530_NUM_PORTS];
-@@ -539,6 +553,138 @@ mt7530_get_vid(struct switch_dev *dev, c
+@@ -505,6 +519,138 @@ mt7530_get_vid(struct switch_dev *dev, const struct switch_attr *attr,
  	return 0;
  }
  
@@ -181,15 +183,15 @@
  static void
  mt7530_write_vlan_entry(struct mt7530_priv *priv, int vlan, u16 vid,
  	                    u8 ports, u8 etags)
-@@ -592,6 +738,7 @@ mt7530_apply_config(struct switch_dev *d
+@@ -558,6 +704,7 @@ mt7530_apply_config(struct switch_dev *dev)
  	int i, j;
  	u8 tag_ports;
  	u8 untag_ports;
 +	bool is_mirror = false;
  
- 	mutex_lock(&priv->reg_mutex);
- 
-@@ -675,6 +822,33 @@ mt7530_apply_config(struct switch_dev *d
+ 	if (!priv->global_vlan_enable) {
+ 		for (i = 0; i < MT7530_NUM_PORTS; i++)
+@@ -637,6 +784,31 @@ mt7530_apply_config(struct switch_dev *dev)
  		mt7530_w32(priv, REG_ESW_PORT_PPBV1(i), val);
  	}
  
@@ -218,12 +220,10 @@
 +		mt7530_w32(priv, REG_ESW_WT_MAC_MFC, val);
 +	}
 +
-+	mutex_unlock(&priv->reg_mutex);
-+
  	return 0;
  }
  
-@@ -895,6 +1069,34 @@ static const struct switch_attr mt7530_g
+@@ -830,6 +1002,34 @@ static const struct switch_attr mt7530_global[] = {
  		.description = "Get MIB counters for switch",
  		.get = mt7530_sw_get_mib,
  		.set = NULL,
@@ -258,7 +258,7 @@
  	},
  };
  
-@@ -905,6 +1107,20 @@ static const struct switch_attr mt7621_p
+@@ -840,6 +1040,20 @@ static const struct switch_attr mt7621_port[] = {
  		.description = "Get MIB counters for port",
  		.get = mt7621_sw_get_port_mib,
  		.set = NULL,
@@ -279,7 +279,7 @@
  	},
  };
  
-@@ -926,6 +1142,20 @@ static const struct switch_attr mt7530_p
+@@ -861,6 +1075,20 @@ static const struct switch_attr mt7530_port[] = {
  		.description = "Get MIB counters for port",
  		.get = mt7530_sw_get_port_mib,
  		.set = NULL,
