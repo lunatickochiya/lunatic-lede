@@ -9,9 +9,9 @@ index 5216cb5c66..9acea3bc84 100644
 +	/* protect among processes for registers access*/
 +	struct mutex reg_mutex;
 +
+ 	u8			mirror_src_port;
  	u8			mirror_dest_port;
  	bool			global_vlan_enable;
- 	struct mt7530_vlan_entry	vlan_entries[MT7530_NUM_VLANS];
 @@ -399,9 +402,13 @@ mt7530_get_port_pvid(struct switch_dev *dev, int port, int *val)
  	if (port >= MT7530_NUM_PORTS)
  		return -EINVAL;
