@@ -41,6 +41,7 @@ static irqreturn_t gsw_interrupt_mt7621(int irq, void *_priv)
 	u32 reg, i;
 
 	reg = mt7530_mdio_r32(gsw, 0x700c);
+	mt7530_mdio_w32(gsw, 0x700c, reg);
 
 	for (i = 0; i < 5; i++)
 		if (reg & BIT(i)) {
@@ -61,7 +62,6 @@ static irqreturn_t gsw_interrupt_mt7621(int irq, void *_priv)
 		}
 
 	mt7620_handle_carrier(priv);
-	mt7530_mdio_w32(gsw, 0x700c, 0x1f);
 
 	return IRQ_HANDLED;
 }
@@ -210,6 +210,7 @@ static void mt7621_hw_init(struct mt7620_gsw *gsw, struct device_node *np)
 	}
 
 	/* enable irq */
+	mt7530_mdio_w32(gsw, 0x7008, 0x1f);
 	val = mt7530_mdio_r32(gsw, 0x7808);
 	val |= 3 << 16;
 	mt7530_mdio_w32(gsw, 0x7808, val);
@@ -236,13 +237,16 @@ int mtk_gsw_init(struct fe_priv *priv)
 	gsw = platform_get_drvdata(pdev);
 	priv->soc->swpriv = gsw;
 
-	mt7621_hw_init(gsw, np);
-
 	if (gsw->irq) {
 		request_irq(gsw->irq, gsw_interrupt_mt7621, 0,
 			    "gsw", priv);
-		mt7530_mdio_w32(gsw, 0x7008, 0x1f);
+		disable_irq(gsw->irq);
 	}
+
+	mt7621_hw_init(gsw, np);
+	
+	if (gsw->irq)
+		enable_irq(gsw->irq);
 
 	return 0;
 }
