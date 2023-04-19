@@ -390,6 +390,14 @@ define Device/youku-yk1
 endef
 TARGET_DEVICES += youku-yk1
 
+define Device/g-cloud
+  DTS := G-Cloud
+  IMAGE_SIZE := $(ralink_default_fw_size_32M)
+  DEVICE_TITLE := Gehua G-Cloud
+  DEVICE_PACKAGES := kmod-usb2 kmod-usb-ledtrig-usbport
+endef
+TARGET_DEVICES += g-cloud
+
 define Device/zbt-ape522ii
   DTS := ZBT-APE522II
   DEVICE_TITLE := Zbtlink ZBT-APE522II

@@ -447,6 +447,10 @@ ramips_setup_macs()
 		ucidef_add_switch "switch0" \
 			"0:lan:2" "1:lan:1" "2:lan:0" "4:wan" "6@eth0"
 		;;
+	g-cloud)
+		ucidef_add_switch "switch0" \
+			"0:wan" "1:lan" "2:lan" "3:lan" "4:lan" "6@eth0"
+		;;
 	*)
 		lan_mac=$(cat /sys/class/net/eth0/address)
 		wan_mac=$(macaddr_add "$lan_mac" 1)
