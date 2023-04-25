@@ -286,6 +286,14 @@ ramips_setup_interfaces()
 		ucidef_add_switch "switch0" \
 			"0:lan:2" "1:lan:1" "4:wan" "6@eth0"
 		;;
+	ghl-r-001)
+		ucidef_add_switch "switch0" \
+			"0:lan:2" "1:lan:1" "2:lan:0" "4:wan" "6@eth0"
+		;;
+	g-cloud)
+		ucidef_add_switch "switch0" \
+			"0:wan" "1:lan" "2:lan" "3:lan" "4:lan" "6@eth0"
+		;;
 	*)
 		RT3X5X=`cat /proc/cpuinfo | egrep "(RT3.5|RT5350)"`
 		if [ -n "${RT3X5X}" ]; then
@@ -442,14 +450,6 @@ ramips_setup_macs()
 		local index="$(find_mtd_index "board_data")"
 		wan_mac="$(grep -m1 mac= "/dev/mtd${index}" | cut -d= -f2)"
 		lan_mac=$wan_mac
-		;;
-	ghl-r-001)
-		ucidef_add_switch "switch0" \
-			"0:lan:2" "1:lan:1" "2:lan:0" "4:wan" "6@eth0"
-		;;
-	g-cloud)
-		ucidef_add_switch "switch0" \
-			"0:wan" "1:lan" "2:lan" "3:lan" "4:lan" "6@eth0"
 		;;
 	*)
 		lan_mac=$(cat /sys/class/net/eth0/address)
