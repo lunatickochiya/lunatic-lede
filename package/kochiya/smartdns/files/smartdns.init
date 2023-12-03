@@ -22,7 +22,11 @@ USE_PROCD=1
 SERVICE_USE_PID=1
 SERVICE_WRITE_PID=1
 SERVICE_DAEMONIZE=1
-SERVICE_PID_FILE="/var/run/smartdns.pid"
+SERVICE_PID_FILE="/run/smartdns.pid"
+if [ ! -d "/run" ]; then
+	SERVICE_PID_FILE="/var/run/smartdns.pid"
+fi
+
 SMARTDNS_CONF_DIR="/etc/smartdns"
 SMARTDNS_CONF_DOWNLOAD_DIR="$SMARTDNS_CONF_DIR/conf.d"
 SMARTDNS_DOMAIN_LIST_DOWNLOAD_DIR="$SMARTDNS_CONF_DIR/domain-set"
@@ -66,7 +70,7 @@ stop_forward_dnsmasq()
 	if ! echo "$OLD_SERVER" | grep "^$addr " >/dev/null 2>&1; then
 		return
 	fi
-	
+
 	uci -q delete dhcp.@dnsmasq[0].server
 	uci -q delete dhcp.@dnsmasq[0].noresolv
 	uci -q set dhcp.@dnsmasq[0].rebind_protection=1
@@ -81,7 +85,7 @@ set_main_dns()
 	hostip="$(uci -q get network.lan.ipaddr)"
 	dnsmasq_port="$(uci -q get dhcp.@dnsmasq[0].port)"
 	[ -z "$dnsmasq_port" ] && dnsmasq_port="53"
-	
+
 	[ -z "$hostip" ] && return
 	[ "$dnsmasq_port" = "53" ] && {
 		uci -q set dhcp.@dnsmasq[0].port=0
@@ -242,7 +246,7 @@ disable_auto_update()
 	local no_restart="$1"
 	grep "/etc/init.d/smartdns updatefiles" /etc/crontabs/root 1>/dev/null 2>&1
 	if [ $? -ne 0 ]; then
-		return 
+		return
 	fi
 
 	sed -i '\@/etc/init.d/smartdns updatefiles@d' /etc/crontabs/root
@@ -258,7 +262,7 @@ enable_auto_update()
 {
 	grep "0 5 * * * /etc/init.d/smartdns updatefiles" /etc/crontabs/root 2>/dev/null
 	if [ $? -eq 0 ]; then
-		return 
+		return
 	fi
 
 	disable_auto_update 1
@@ -296,13 +300,15 @@ load_domain_rules()
 		conf_append "domain-rules" "/domain-set:${domain_set_name}-forwarding-file/ $domain_set_args"
 	}
 
-	conf_append "domain-set" "-name ${domain_set_name}-forwarding-list -file /etc/smartdns/domain-forwarding.list"
-	conf_append "domain-rules" "/domain-set:${domain_set_name}-forwarding-list/ $domain_set_args"
+	[ ! -z "$domain_set_args" ] && {
+		conf_append "domain-set" "-name ${domain_set_name}-forwarding-list -file /etc/smartdns/domain-forwarding.list"
+		conf_append "domain-rules" "/domain-set:${domain_set_name}-forwarding-list/ $domain_set_args"
+	}
 
 	config_get block_domain_set_file "$section" "block_domain_set_file"
 	[ ! -z "$block_domain_set_file" ] && {
 		conf_append "domain-set" "-name ${domain_set_name}-block-file -file '$block_domain_set_file'"
-		conf_append "domain-rules" "/domain-set:${domain_set_name}-block-file/ -group block"
+		conf_append "domain-rules" "/domain-set:${domain_set_name}-block-file/ --address #"
 	}
 
 	conf_append "domain-set" "-name ${domain_set_name}-block-list -file /etc/smartdns/domain-block.list"
@@ -347,9 +353,10 @@ load_domain_rule_list()
 
 	config_get addition_flag "$section" "addition_flag" ""
 	[ ! -z "$addition_flag" ] && domain_set_args="$domain_set_args $addition_flag"
+	[ -z "$domain_set_args" ] && return
 
 	conf_append "domain-set" "-name domain-rule-list-${domain_set_name} -file '$domain_list_file'"
-	conf_append "domain-rules" "/domain-set:domain-rule-list-${domain_set_name}/ $domain_set_args"	
+	conf_append "domain-rules" "/domain-set:domain-rule-list-${domain_set_name}/ $domain_set_args"
 }
 
 conf_append_bind()
@@ -425,12 +432,21 @@ load_second_server()
 	config_get_bool seconddns_force_aaaa_soa "$section" "seconddns_force_aaaa_soa" "0"
 	[ "$seconddns_force_aaaa_soa" = "1" ] && ARGS="$ARGS -force-aaaa-soa"
 
+	config_get seconddns_ipset_name "$section" "seconddns_ipset_name" ""
+	[ -z "$seconddns_ipset_name" ] || ARGS="$ARGS -ipset $seconddns_ipset_name"
+
+	config_get seconddns_nftset_name "$section" "seconddns_nftset_name" ""
+	[ -z "$seconddns_nftset_name" ] || ARGS="$ARGS -nftset $seconddns_nftset_name"
+
 	config_get_bool bind_device "$section" "bind_device" "0"
 	config_get bind_device_name "$section" "bind_device_name" "${lan_device}"
 	[ ! -z "$bind_device_name" ] && [ "$bind_device" = "1" ] && device="${bind_device_name}"
 
 	config_get_bool "seconddns_tcp_server" "$section" "seconddns_tcp_server" "1"
 	config_get ipv6_server "$section" "ipv6_server" "1"
+
+	config_get seconddns_server_flags "$section" "seconddns_server_flags" ""
+	[ -z "$seconddns_server_flags" ] || ARGS="$ARGS $seconddns_server_flags"
 
 	conf_append_bind "$seconddns_port" "$device" "$seconddns_tcp_server" "$ipv6_server" "$ARGS"
 }
@@ -441,7 +457,7 @@ conf_append_conf_files()
 
 	if [ "$1" != "${1#/}" ]; then
 		fullpath="$1"
-	else 
+	else
 		fullpath="$SMARTDNS_CONF_DOWNLOAD_DIR/$conf_file"
 	fi
 
@@ -563,7 +579,7 @@ load_service()
 
 	config_get proxy_server "$section" "proxy_server" ""
 	[ -z "$proxy_server" ] || conf_append "proxy-server" "$proxy_server -name default-proxy"
-	
+
 	config_get dns64 "$section" "dns64" ""
 	[ -z "$dns64" ] || conf_append "dns64" "$dns64"
 
@@ -710,9 +726,9 @@ download_file() {
 
 	echo "download file $name success"
 	if [ "$filetype" = "list" ]; then
-		mv "/tmp/$name" "$SMARTDNS_DOMAIN_LIST_DOWNLOAD_DIR/$name"	
+		mv "/tmp/$name" "$SMARTDNS_DOMAIN_LIST_DOWNLOAD_DIR/$name"
 	elif [ "$filetype" = "config" ]; then
-		mv "/tmp/$name" "$SMARTDNS_CONF_DOWNLOAD_DIR/$name"	
+		mv "/tmp/$name" "$SMARTDNS_CONF_DOWNLOAD_DIR/$name"
 	fi
 }
 
@@ -723,7 +739,7 @@ check_and_add_entry() {
 		uci -q add smartdns smartdns >/dev/null
 		docommit=1
 	fi
-	
+
 	uci -q get smartdns.@domain-rule[0] >/dev/null
 	if [ $? -ne 0 ]; then
 		uci -q add smartdns domain-rule >/dev/null
@@ -769,3 +785,4 @@ reload_service()
 	start
 	DO_RELOAD="0"
 }
+
