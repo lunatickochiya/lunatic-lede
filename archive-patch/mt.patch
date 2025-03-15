@@ -1,0 +1,172 @@
+diff --git a/package/kochiya/mt/drivers/mt7603e/src/mt7603_wifi/include/os/rt_linux.h b/package/kochiya/mt/drivers/mt7603e/src/mt7603_wifi/include/os/rt_linux.h
+index 94fda8d..59af7ad 100644
+--- a/package/kochiya/mt/drivers/mt7603e/src/mt7603_wifi/include/os/rt_linux.h
++++ b/package/kochiya/mt/drivers/mt7603e/src/mt7603_wifi/include/os/rt_linux.h
+@@ -549,7 +549,7 @@ do { \
+ #define	THREAD_PID_INIT_VALUE	NULL
+ /* TODO: Use this IOCTL carefully when linux kernel version larger than 2.6.27, because the PID only correct when the user space task do this ioctl itself. */
+ /*#define RTMP_GET_OS_PID(_x, _y)    _x = get_task_pid(current, PIDTYPE_PID); */
+-#define RT_GET_OS_PID(_x, _y)		do{rcu_read_lock(); _x=current->pids[PIDTYPE_PID].pid; rcu_read_unlock();}while(0)
++#define RT_GET_OS_PID(_x, _y)		do {rcu_read_lock(); _x = current->thread_pid; rcu_read_unlock(); } while (0)
+ #ifdef OS_ABL_FUNC_SUPPORT
+ #define RTMP_GET_OS_PID(_a, _b)			RtmpOsGetPid(&_a, _b)
+ #else
+@@ -589,7 +589,7 @@ typedef struct tasklet_struct  *POS_NET_TASK_STRUCT;
+ typedef struct timer_list	OS_NDIS_MINIPORT_TIMER;
+ typedef struct timer_list	OS_TIMER;
+ 
+-typedef void (*TIMER_FUNCTION)(unsigned long);
++typedef void (*TIMER_FUNCTION)(struct timer_list *);
+ 
+ 
+ #define OS_WAIT(_time) \
+diff --git a/package/kochiya/mt/drivers/mt7603e/src/mt7603_wifi/os/linux/ap_ioctl.c b/package/kochiya/mt/drivers/mt7603e/src/mt7603_wifi/os/linux/ap_ioctl.c
+index e9c66ea..486ef5f 100644
+--- a/package/kochiya/mt/drivers/mt7603e/src/mt7603_wifi/os/linux/ap_ioctl.c
++++ b/package/kochiya/mt/drivers/mt7603e/src/mt7603_wifi/os/linux/ap_ioctl.c
+@@ -350,7 +350,7 @@ skip_check:
+ 		case SIOCGIWPRIV:
+ 			if (wrqin->u.data.pointer) 
+ 			{
+-				if ( access_ok(VERIFY_WRITE, wrqin->u.data.pointer, sizeof(ap_privtab)) != TRUE)
++				if (access_ok(wrqin->u.data.pointer, sizeof(ap_privtab)) != TRUE)
+ 					break;
+ 				if ((sizeof(ap_privtab) / sizeof(ap_privtab[0])) <= wrq->u.data.length)
+ 				{
+@@ -364,14 +364,14 @@ skip_check:
+ 			break;
+ 		case RTPRIV_IOCTL_SET:
+ 			{
+-				if( access_ok(VERIFY_READ, wrqin->u.data.pointer, wrqin->u.data.length) == TRUE)
++				if(access_ok(wrqin->u.data.pointer, wrqin->u.data.length) == TRUE)
+ 					Status = RTMP_AP_IoctlHandle(pAd, wrq, CMD_RTPRIV_IOCTL_SET, 0, NULL, 0);
+ 			}
+ 			break;
+ 		    
+ 		case RTPRIV_IOCTL_SHOW:
+ 			{
+-				if( access_ok(VERIFY_READ, wrqin->u.data.pointer, wrqin->u.data.length) == TRUE)
++				if(access_ok(wrqin->u.data.pointer, wrqin->u.data.length) == TRUE)
+ 					Status = RTMP_AP_IoctlHandle(pAd, wrq, CMD_RTPRIV_IOCTL_SHOW, 0, NULL, 0);
+ 			}
+ 			break;	
+diff --git a/package/kochiya/mt/drivers/mt7612e/src/mt76x2/os/linux/ap_ioctl.c b/package/kochiya/mt/drivers/mt7612e/src/mt76x2/os/linux/ap_ioctl.c
+index 0190e1c..f407063 100644
+--- a/package/kochiya/mt/drivers/mt7612e/src/mt76x2/os/linux/ap_ioctl.c
++++ b/package/kochiya/mt/drivers/mt7612e/src/mt76x2/os/linux/ap_ioctl.c
+@@ -324,7 +324,7 @@ INT rt28xx_ap_ioctl(struct net_device *net_dev, struct ifreq *rq, int cmd)
+ 		case SIOCGIWPRIV:
+ 			if (wrqin->u.data.pointer) 
+ 			{
+-				if ( access_ok(VERIFY_WRITE, wrqin->u.data.pointer, sizeof(ap_privtab)) != TRUE)
++				if (access_ok(wrqin->u.data.pointer, sizeof(ap_privtab)) != TRUE)
+ 					break;
+ 				if ((sizeof(ap_privtab) / sizeof(ap_privtab[0])) <= wrq->u.data.length)
+ 				{
+@@ -338,14 +338,14 @@ INT rt28xx_ap_ioctl(struct net_device *net_dev, struct ifreq *rq, int cmd)
+ 			break;
+ 		case RTPRIV_IOCTL_SET:
+ 			{
+-				if( access_ok(VERIFY_READ, wrqin->u.data.pointer, wrqin->u.data.length) == TRUE)
++				if(access_ok(wrqin->u.data.pointer, wrqin->u.data.length) == TRUE)
+ 					Status = RTMP_AP_IoctlHandle(pAd, wrq, CMD_RTPRIV_IOCTL_SET, 0, NULL, 0);
+ 			}
+ 			break;
+ 		    
+ 		case RTPRIV_IOCTL_SHOW:
+ 			{
+-				if( access_ok(VERIFY_READ, wrqin->u.data.pointer, wrqin->u.data.length) == TRUE)
++				if(access_ok(wrqin->u.data.pointer, wrqin->u.data.length) == TRUE)
+ 					Status = RTMP_AP_IoctlHandle(pAd, wrq, CMD_RTPRIV_IOCTL_SHOW, 0, NULL, 0);
+ 			}
+ 			break;	
+diff --git a/package/kochiya/mt/drivers/mt7615d/src/mt_wifi/os/linux/ap_ioctl.c b/package/kochiya/mt/drivers/mt7615d/src/mt_wifi/os/linux/ap_ioctl.c
+index 9d72c24..6d128ee 100644
+--- a/package/kochiya/mt/drivers/mt7615d/src/mt_wifi/os/linux/ap_ioctl.c
++++ b/package/kochiya/mt/drivers/mt7615d/src/mt_wifi/os/linux/ap_ioctl.c
+@@ -398,7 +398,7 @@ INT rt28xx_ap_ioctl(struct net_device *net_dev, struct ifreq *rq, int cmd)
+ 
+ 	case SIOCGIWPRIV:
+ 		if (wrqin->u.data.pointer) {
+-			if (access_ok(VERIFY_WRITE, wrqin->u.data.pointer, sizeof(ap_privtab)) != TRUE)
++			if (access_ok(wrqin->u.data.pointer, sizeof(ap_privtab)) != TRUE)
+ 				break;
+ 
+ 			if ((sizeof(ap_privtab) / sizeof(ap_privtab[0])) <= wrq->u.data.length) {
+@@ -413,13 +413,13 @@ INT rt28xx_ap_ioctl(struct net_device *net_dev, struct ifreq *rq, int cmd)
+ 		break;
+ 
+ 	case RTPRIV_IOCTL_SET: {
+-		if (access_ok(VERIFY_READ, wrqin->u.data.pointer, wrqin->u.data.length) == TRUE)
++		if(access_ok(wrqin->u.data.pointer, wrqin->u.data.length) == TRUE)
+ 			Status = RTMP_AP_IoctlHandle(pAd, wrq, CMD_RTPRIV_IOCTL_SET, 0, NULL, 0);
+ 	}
+ 	break;
+ 
+ 	case RTPRIV_IOCTL_SHOW: {
+-		if (access_ok(VERIFY_READ, wrqin->u.data.pointer, wrqin->u.data.length) == TRUE)
++		if(access_ok(wrqin->u.data.pointer, wrqin->u.data.length) == TRUE)
+ 			Status = RTMP_AP_IoctlHandle(pAd, wrq, CMD_RTPRIV_IOCTL_SHOW, 0, NULL, 0);
+ 	}
+ 	break;
+diff --git a/package/kochiya/mt/drivers/mt7615d/src/mt_wifi/os/linux/rt_rbus_pci_util.c b/package/kochiya/mt/drivers/mt7615d/src/mt_wifi/os/linux/rt_rbus_pci_util.c
+index 4475e17..ce5250d 100644
+--- a/package/kochiya/mt/drivers/mt7615d/src/mt_wifi/os/linux/rt_rbus_pci_util.c
++++ b/package/kochiya/mt/drivers/mt7615d/src/mt_wifi/os/linux/rt_rbus_pci_util.c
+@@ -21,7 +21,19 @@
+ 
+ #ifdef RTMP_MAC_PCI
+ VOID *alloc_rx_buf_1k(void *hif_resource);
++static inline void *dma_zalloc_coherent(struct device *dev, size_t size, dma_addr_t *dma_handle, gfp_t flag)
+ 
++{
++
++      void *ret = dma_alloc_coherent(dev, size, dma_handle, flag);
++
++      if (ret)
++
++         memset(ret, 0, size);
++
++      return ret;
++
++}
+ /* Function for Tx/Rx/Mgmt Desc Memory allocation. */
+ void RtmpAllocDescBuf(
+ 	IN VOID * pDev,
+@@ -33,11 +45,7 @@ void RtmpAllocDescBuf(
+ {
+ 	dma_addr_t DmaAddr = (dma_addr_t)(*phy_addr);
+ 	struct device *pdev = (struct device *)pDev;
+-#if (KERNEL_VERSION(3, 18, 0) <= LINUX_VERSION_CODE)
+ 	*VirtualAddress = (PVOID)dma_zalloc_coherent(pdev, sizeof(char) * Length, &DmaAddr, GFP_KERNEL);
+-#else
+-	*VirtualAddress = (PVOID)dma_alloc_coherent(pdev, sizeof(char) * Length, &DmaAddr, GFP_KERNEL);
+-#endif
+ 	*phy_addr = (NDIS_PHYSICAL_ADDRESS)DmaAddr;
+ }
+ 
+diff --git a/package/kochiya/mt/drivers/mt_wifi/Makefile b/package/kochiya/mt/drivers/mt_wifi/Makefile
+index 6b60be3..25f2423 100644
+--- a/package/kochiya/mt/drivers/mt_wifi/Makefile
++++ b/package/kochiya/mt/drivers/mt_wifi/Makefile
+@@ -21,7 +21,7 @@ define Package/mt_wifi
+   SECTION:=net
+   CATEGORY:=Network
+   TITLE:=MTK wifi AP config
+-  DEPENDS:=@TARGET_ramips +wireless-tools
++  DEPENDS:=@TARGET_ramips +wireless-tools +kmod-mac80211
+   SUBMENU:=Wireless
+ endef
+ 
+diff --git a/package/kochiya/mt/drivers/mt_wifi/config.in b/package/kochiya/mt/drivers/mt_wifi/config.in
+index c78b793..8c4c84d 100644
+--- a/package/kochiya/mt/drivers/mt_wifi/config.in
++++ b/package/kochiya/mt/drivers/mt_wifi/config.in
+@@ -19,7 +19,6 @@ config MTK_CHIP_MT7615E
+ config MTK_CHIP_MT7615E_DBDC
+ 	bool "MTK_CHIP_MT7615E_DBDC"
+ 	depends on MTK_CHIP_MT7615E
+-	default y if TARGET_ramips_mt7621_DEVICE_phicomm_k2p
+ 	default n
+ 
+ endmenu

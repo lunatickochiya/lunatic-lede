@@ -1,0 +1,400 @@
+From 0ff5d34d67dcba48f81dcf8823bd55b0a21e29d0 Mon Sep 17 00:00:00 2001
+From: Robert Marko <robimarko@gmail.com>
+Date: Thu, 16 May 2019 11:15:55 +0200
+Subject: [PATCH] Enables hostapd to disconnect STA Something again Try
+ something Remove stupid thing Try something again Revert "WIP"
+
+This reverts commit 1057453bc6e1b6c1a53af6c25a95eaf8478db1ad.
+WIP
+Attempt 2
+Integrate further
+Enable building rssi
+
+Signed-off-by: Robert Marko <robimarko@gmail.com>
+Start removing ubus req
+Add low RSSI controll support
+
+Enables hostapd to disconnect STA if below defined threshold.
+
+Fix minimal value
+
+Add cflag
+
+Move in makefile
+---
+ 0001-Add-low-RSSI-controll-support.patch | 216 +++++++++++++++++++++++++++++++
+ hostapd/Makefile                         |   5 +
+ hostapd/config_file.c                    |  20 +++
+ hostapd/defconfig                        |   3 +
+ hostapd/hostapd.conf                     |  29 +++++
+ src/ap/Makefile                          |   2 +
+ src/ap/ap_config.c                       |   7 +
+ src/ap/ap_config.h                       |   6 +
+ src/ap/hostapd.c                         |   2 +
+ src/ap/rssi.c                            |  81 ++++++++++++
+ src/ap/rssi.h                            |  31 +++++
+ src/ap/sta_info.c                        |   4 +
+ src/ap/sta_info.h                        |   4 +
+ src/drivers/driver_nl80211.c             |   4 +
+ 14 files changed, 414 insertions(+)
+ create mode 100644 0001-Add-low-RSSI-controll-support.patch
+ create mode 100644 src/ap/rssi.c
+ create mode 100644 src/ap/rssi.h
+
+diff --git a/hostapd/Makefile b/hostapd/Makefile
+index 65c5e91..da2c5ef 100644
+--- a/hostapd/Makefile
++++ b/hostapd/Makefile
+@@ -248,6 +248,11 @@ ifndef CONFIG_NO_CTRL_IFACE
+ CFLAGS += -DCONFIG_CTRL_IFACE
+ endif
+ 
++ifdef CONFIG_RSSI_CONTROL
++CFLAGS += -DCONFIG_RSSI_CONTROL
++OBJS += ../src/ap/rssi.o
++endif
++
+ ifdef CONFIG_IAPP
+ CFLAGS += -DCONFIG_IAPP
+ OBJS += ../src/ap/iapp.o
+diff --git a/hostapd/config_file.c b/hostapd/config_file.c
+index 3ba3709..2920506 100644
+--- a/hostapd/config_file.c
++++ b/hostapd/config_file.c
+@@ -3282,6 +3282,26 @@ static int hostapd_config_fill(struct hostapd_config *conf,
+ 			return 1;
+ 		}
+ 		bss->send_probe_response = val;
++	#ifdef CONFIG_RSSI_CONTROL		
++		} else if (os_strcmp(buf, "signal_connect") == 0) {
++			bss->signal_auth_min = atoi(pos);
++		} else if (os_strcmp(buf, "signal_stay") == 0) {
++			bss->signal_stay_min = atoi(pos);
++		} else if (os_strcmp(buf, "signal_poll_time") == 0) {
++			bss->signal_poll_time = atoi(pos);
++			if (bss->signal_poll_time < 2) {
++				wpa_printf(MSG_ERROR, "Line %d: invalid signal poll time", line);
++				return 1;
++			}
++		} else if (os_strcmp(buf, "signal_strikes") == 0) {
++			bss->signal_strikes = atoi(pos);
++		} else if (os_strcmp(buf, "signal_drop_reason") == 0) {
++			bss->signal_drop_reason = atoi(pos);
++			if (bss->signal_drop_reason < 1 || bss->signal_drop_reason > 54) {
++				wpa_printf(MSG_ERROR, "Line %d: invalid signal drop reason", line);
++				return 1;
++			}
++	#endif /* CONFIG_RSSI_CONTROL */
+ 	} else if (os_strcmp(buf, "supported_rates") == 0) {
+ 		if (hostapd_parse_intlist(&conf->supported_rates, pos)) {
+ 			wpa_printf(MSG_ERROR, "Line %d: invalid rate list",
+diff --git a/hostapd/defconfig b/hostapd/defconfig
+index 1f504ad..0914091 100644
+--- a/hostapd/defconfig
++++ b/hostapd/defconfig
+@@ -379,6 +379,9 @@ CONFIG_IPV6=y
+ # Airtime policy support
+ #CONFIG_AIRTIME_POLICY=y
+ 
++# RSSI control support
++#CONFIG_RSSI_CONTROL=y
++
+ # Override default value for the wpa_disable_eapol_key_retries configuration
+ # parameter. See that parameter in hostapd.conf for more details.
+ #CFLAGS += -DDEFAULT_WPA_DISABLE_EAPOL_KEY_RETRIES=1
+diff --git a/hostapd/hostapd.conf b/hostapd/hostapd.conf
+index 97ae293..b367331 100644
+--- a/hostapd/hostapd.conf
++++ b/hostapd/hostapd.conf
+@@ -2532,6 +2532,35 @@ own_ip_addr=127.0.0.1
+ # airtime.
+ #airtime_bss_limit=1
+ 
++##### RSSI control configuration ##############################################
++
++# Signal required to connect (dBm)
++# This can be used to set minimum signal level required for STA to connect.
++# Defaults to -128 dBm so all stations are accepted.
++#signal_connect=-128
++
++# Signal required to stay (dBm)
++# This can be used to set minimum signal level required for STA to remain 
++# connected.
++# Defaults to -128 dBm so no stations will be disconnected.
++#signal_stay=-128
++
++# Signal poll time (s)
++# Sets the time in s between polling for STA signal levels.
++# Defaults to 10s, minimum is 3s.
++#signal_poll_time=10
++
++# Number of strikes
++# Defines the number of polls that STA can be below threshold and remain
++# connected, after its exhausted STA will be disconnected.
++# Defaults to 3.
++#signal_strikes=3
++
++# STA drop reason
++# Defines the IEEE802.11 Deauth Reason Code returned when disconnecting STA
++# Defaults to 3(station is leaving (or has left) IBSS or ESS)
++#signal_drop_reason=3
++
+ ##### TESTING OPTIONS #########################################################
+ #
+ # The options in this section are only available when the build configuration
+diff --git a/src/ap/Makefile b/src/ap/Makefile
+index 48f8f23..51214bf 100644
+--- a/src/ap/Makefile
++++ b/src/ap/Makefile
+@@ -21,6 +21,7 @@ CFLAGS += -DCONFIG_PROXYARP
+ CFLAGS += -DCONFIG_IPV6
+ CFLAGS += -DCONFIG_IAPP
+ CFLAGS += -DCONFIG_AIRTIME_POLICY
++CFLAGS += -DCONFIG_RSSI_CONTROL
+ 
+ LIB_OBJS= \
+ 	accounting.o \
+@@ -55,6 +56,7 @@ LIB_OBJS= \
+ 	pmksa_cache_auth.o \
+ 	preauth_auth.o \
+ 	rrm.o \
++	rssi.o \
+ 	sta_info.o \
+ 	tkip_countermeasures.o \
+ 	utils.o \
+diff --git a/src/ap/ap_config.c b/src/ap/ap_config.c
+index 09ab372..c998691 100644
+--- a/src/ap/ap_config.c
++++ b/src/ap/ap_config.c
+@@ -81,6 +81,13 @@ void hostapd_config_defaults_bss(struct hostapd_bss_config *bss)
+ 	bss->eapol_version = EAPOL_VERSION;
+ 
+ 	bss->max_listen_interval = 65535;
++#ifdef CONFIG_RSSI_CONTROL
++	bss->signal_auth_min = -128;  /* this is lower than any real signal, so all stations will be accepted */
++	bss->signal_stay_min = -128;
++	bss->signal_strikes = 3;
++	bss->signal_poll_time = 10;
++    bss->signal_drop_reason = 3; /* "Local choice" */
++#endif /* CONFIG_RSSI_CONTROL */
+ 
+ 	bss->pwd_group = 19; /* ECC: GF(p=256) */
+ 
+diff --git a/src/ap/ap_config.h b/src/ap/ap_config.h
+index b0b5c6f..5fdf5dd 100644
+--- a/src/ap/ap_config.h
++++ b/src/ap/ap_config.h
+@@ -340,6 +340,12 @@ struct hostapd_bss_config {
+ 	int wds_sta;
+ 	int isolate;
+ 	int start_disabled;
++	int	signal_auth_min;    /* Minimum signal a STA needs to authenticate */
++	int signal_stay_min;    /* Minimum signal needed to stay connected. */
++	int signal_poll_time;   /* Time in seconds between checks of connected STAs */
++	int signal_strikes;     /* Number of consecutive times signal can be low 
++								before dropping the STA.  */
++	int signal_drop_reason; /* IEEE802.11 reason code transmitted when dropping a STA.  */
+ 
+ 	int auth_algs; /* bitfield of allowed IEEE 802.11 authentication
+ 			* algorithms, WPA_AUTH_ALG_{OPEN,SHARED,LEAP} */
+diff --git a/src/ap/hostapd.c b/src/ap/hostapd.c
+index d0fecc8..29eeb40 100644
+--- a/src/ap/hostapd.c
++++ b/src/ap/hostapd.c
+@@ -51,6 +51,7 @@
+ #include "acs.h"
+ #include "hs20.h"
+ #include "airtime_policy.h"
++#include "rssi.h"
+ 
+ 
+ static int hostapd_flush_old_stations(struct hostapd_data *hapd, u16 reason);
+@@ -1979,6 +1980,7 @@ dfs_offload:
+ 	hostapd_set_state(iface, HAPD_IFACE_ENABLED);
+ 	hostapd_owe_update_trans(iface);
+ 	airtime_policy_update_init(iface);
++	airtime_policy_update_init(iface);
+ 	wpa_msg(iface->bss[0]->msg_ctx, MSG_INFO, AP_EVENT_ENABLED);
+ 	if (hapd->setup_complete_cb)
+ 		hapd->setup_complete_cb(hapd->setup_complete_cb_ctx);
+diff --git a/src/ap/rssi.c b/src/ap/rssi.c
+new file mode 100644
+index 0000000..af7f0d0
+--- /dev/null
++++ b/src/ap/rssi.c
+@@ -0,0 +1,81 @@
++/*
++ * RSSI control configuration
++ * Copyright (c) 2019, Robert Marko <robimarko@gmail.com>
++ *
++ * This software may be distributed under the terms of the BSD license.
++ * See README for more details.
++ */
++
++#include "utils/includes.h"
++#include "utils/common.h"
++#include "utils/eloop.h"
++#include "utils/wpabuf.h"
++#include "common/ieee802_11_defs.h"
++#include "hostapd.h"
++#include "neighbor_db.h"
++#include "wps_hostapd.h"
++#include "sta_info.h"
++#include "ap_drv_ops.h"
++#include "beacon.h"
++#include "rrm.h"
++#include "wnm_ap.h"
++#include "taxonomy.h"
++#include "rssi.h"
++
++static void hostapd_bss_signal_check(void *eloop_data, void *user_ctx)
++/* This is called by an eloop timeout.  All stations in the list are checked
++ * for signal level.  This requires calling the driver, since hostapd doesn't
++ * see packets from a station once it is fully authorized.
++ * Stations with signal level below the threshold will be dropped.
++ * Cases where the last RSSI is significantly less than the average are usually
++ * a bad reading and should not lead to a drop.
++ */
++{
++	struct hostapd_data *hapd = user_ctx;
++	struct hostap_sta_driver_data data;
++	struct sta_info *sta, *sta_next;
++	u8 addr[ETH_ALEN];  // Buffer the address for logging purposes, in case it is destroyed while dropping
++	int strikes;        //    same with strike count on this station.
++	int num_sta = 0;
++	int num_drop = 0;
++	int signal_inst;
++	int signal_avg;
++
++
++	for (sta = hapd->sta_list; sta; sta = sta_next) {
++		sta_next = sta->next;
++		memcpy(addr, sta->addr, ETH_ALEN);
++		if (!hostapd_drv_read_sta_data(hapd, &data, addr)) { 
++			signal_inst = data.signal;
++			signal_avg = data.last_ack_rssi;
++			num_sta++;
++			strikes = sta->sig_drop_strikes;
++			if (signal_inst > signal_avg) 
++				signal_avg = signal_inst;
++			if (signal_inst > (signal_avg - 5)) {  // ignore unusually low instantaneous signal.
++				if (signal_avg < hapd->conf->signal_stay_min) { // signal bad.
++					strikes = ++sta->sig_drop_strikes;
++					if (strikes >= hapd->conf->signal_strikes) {  // Struck out--, drop.
++						ap_sta_deauthenticate(hapd, sta, hapd->conf->signal_drop_reason); 
++						num_drop++;
++					}
++				}
++				else {
++					sta->sig_drop_strikes = 0;  // signal OK, reset the strike counter.
++					strikes = 0;
++				}				
++			}
++			hostapd_logger(hapd, addr, HOSTAPD_MODULE_IAPP, HOSTAPD_LEVEL_DEBUG, "%i %i (%i)",
++				data.signal, data.last_ack_rssi, strikes);
++		}
++	}
++	hostapd_logger(hapd, NULL, HOSTAPD_MODULE_IAPP, HOSTAPD_LEVEL_INFO, "signal poll: %i STAs, %i dropped", num_sta, num_drop);
++
++	eloop_register_timeout(hapd->conf->signal_poll_time, 0, hostapd_bss_signal_check, eloop_data, hapd);
++}
++
++int airtime_policy_update_init(struct hostapd_iface *iface)
++{
++	eloop_register_timeout(hapd->conf->signal_poll_time, 0, hostapd_bss_signal_check, eloop_data, hapd);
++	return 0;
++}
+\ No newline at end of file
+diff --git a/src/ap/rssi.h b/src/ap/rssi.h
+new file mode 100644
+index 0000000..46c6130
+--- /dev/null
++++ b/src/ap/rssi.h
+@@ -0,0 +1,31 @@
++/*
++ * RSSI control configuration
++ * Copyright (c) 2019, Robert Marko <robimarko@gmail.com>
++ *
++ * This software may be distributed under the terms of the BSD license.
++ * See README for more details.
++ */
++
++#ifndef RSSI_CONTROL_H
++#define RSSI_CONTROL_H
++
++#ifdef CONFIG_RSSI_CONTROL
++
++static void hostapd_bss_signal_check(void *eloop_data, void *user_ctx);
++int hostapd_bss_signal_policy_init(struct hostapd_iface *iface);
++
++#else /* CONFIG_RSSI_CONTROL */
++
++static inline void hostapd_bss_signal_check(void *eloop_data, void *user_ctx)
++{
++
++}
++
++static inline int hostapd_bss_signal_policy_init(struct hostapd_iface *iface)
++{
++	return -1;
++}
++
++#endif /* CONFIG_RSSI_CONTROL */
++
++#endif /* RSSI_CONTROL_H */
+\ No newline at end of file
+diff --git a/src/ap/sta_info.c b/src/ap/sta_info.c
+index 4f9eae8..aa510c1 100644
+--- a/src/ap/sta_info.c
++++ b/src/ap/sta_info.c
+@@ -718,6 +718,10 @@ struct sta_info * ap_sta_add(struct hostapd_data *hapd, const u8 *addr)
+ 				      &sta->probe_ie_taxonomy);
+ #endif /* CONFIG_TAXONOMY */
+ 
++#ifdef CONFIG_RSSI_CONTROL
++    sta->sig_drop_strikes = 0;
++#endif /* CONFIG_RSSI_CONTROL */
++
+ 	return sta;
+ }
+ 
+diff --git a/src/ap/sta_info.h b/src/ap/sta_info.h
+index c185d7a..d2a4b50 100644
+--- a/src/ap/sta_info.h
++++ b/src/ap/sta_info.h
+@@ -255,6 +255,10 @@ struct sta_info {
+ 	struct wpabuf *fils_g_sta;
+ #endif /* CONFIG_FILS */
+ 
++#ifdef CONFIG_RSSI_CONTROL
++	int sig_drop_strikes;  /* Number of times signal was below threshold. */
++#endif /* CONFIG_RSSI_CONTROL */
++
+ #ifdef CONFIG_OWE
+ 	u8 *owe_pmk;
+ 	size_t owe_pmk_len;
+diff --git a/src/drivers/driver_nl80211.c b/src/drivers/driver_nl80211.c
+index 3556b6d..5423c69 100644
+--- a/src/drivers/driver_nl80211.c
++++ b/src/drivers/driver_nl80211.c
+@@ -6330,6 +6330,7 @@ static int get_sta_handler(struct nl_msg *msg, void *arg)
+ 		[NL80211_STA_INFO_RX_BYTES64] = { .type = NLA_U64 },
+ 		[NL80211_STA_INFO_TX_BYTES64] = { .type = NLA_U64 },
+ 		[NL80211_STA_INFO_SIGNAL] = { .type = NLA_U8 },
++		[NL80211_STA_INFO_SIGNAL_AVG] = { .type = NLA_U8 },
+ 		[NL80211_STA_INFO_ACK_SIGNAL] = { .type = NLA_U8 },
+ 		[NL80211_STA_INFO_RX_DURATION] = { .type = NLA_U64 },
+ 		[NL80211_STA_INFO_TX_DURATION] = { .type = NLA_U64 },
+@@ -6401,6 +6402,9 @@ static int get_sta_handler(struct nl_msg *msg, void *arg)
+ 			nla_get_u32(stats[NL80211_STA_INFO_TX_FAILED]);
+ 	if (stats[NL80211_STA_INFO_SIGNAL])
+ 		data->signal = nla_get_u8(stats[NL80211_STA_INFO_SIGNAL]);
++	if (stats[NL80211_STA_INFO_SIGNAL_AVG])
++		data->last_ack_rssi =
++			(int) (s8) nla_get_u8(stats[NL80211_STA_INFO_SIGNAL_AVG]);
+ 	if (stats[NL80211_STA_INFO_ACK_SIGNAL]) {
+ 		data->last_ack_rssi =
+ 			nla_get_u8(stats[NL80211_STA_INFO_ACK_SIGNAL]);
+-- 
+2.1.4
+
