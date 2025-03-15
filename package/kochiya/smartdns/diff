@@ -1,0 +1,9 @@
+@@ -371,7 +364,7 @@
+ 	if [ "$ipv6_server" = "1" ]; then
+ 		ADDR="[::]"
+ 	else
+-		ADDR=""
++		ADDR="0.0.0.0"
+ 	fi
+
+ 	devices=$(echo "$devices" | sed 's/,/ /g')
