@@ -1,0 +1,189 @@
+#!/bin/sh
+
+# 获取无线设备数量
+RADIO_NUM=$(uci show wireless | grep -c "wifi-device")
+
+# 获取 2.4G 和 5G 对应的无线接口名称
+2G_BAND=$(uci show wireless | grep "2g" | awk -F'.' '{print $2}' | awk -F'=' '{print $1}')
+5G_BAND=$(uci show wireless | grep "5g" | awk -F'.' '{print $2}' | awk -F'=' '{print $1}')
+
+# 如果 RADIO_NUM = 3, 获取第二个 5G 频段
+if [ "$RADIO_NUM" -eq 3 ]; then
+    # 直接获取所有5G接口，并获取第二个5G接口
+    5G_BAND_2=$(uci show wireless | grep "5g" | awk -F'.' '{print $2}' | awk -F'=' '{print $1}' | head -n 2 | tail -n 1)
+fi
+
+# 设置无线名称
+function set_2g_name() {
+    local iface=$1
+    local phy=$2
+    uci -q batch <<-EOF >/dev/null
+        set wireless.$iface.ssid=Lunatic_2.4G_$(cat /sys/class/ieee80211/$phy/macaddress | sed 's/.[0-9A-Fa-f]:.[0-9A-Fa-f]:.[0-9A-Fa-f]:\(.[0-9A-Fa-f]\):\(.[0-9A-Fa-f]\):\(.[0-9A-Fa-f]\)/\1\2\3/g' | tr :[a-z] :[A-Z])
+        commit
+    EOF
+}
+
+function set_5g_name() {
+    local iface=$1
+    local phy=$2
+    uci -q batch <<-EOF >/dev/null
+        set wireless.$iface.ssid=Lunatic_5G_$(cat /sys/class/ieee80211/$phy/macaddress | sed 's/.[0-9A-Fa-f]:.[0-9A-Fa-f]:.[0-9A-Fa-f]:\(.[0-9A-Fa-f]\):\(.[0-9A-Fa-f]\):\(.[0-9A-Fa-f]\)/\1\2\3/g' | tr :[a-z] :[A-Z])
+        commit
+    EOF
+}
+
+function set_5g_2_name() {
+    local iface=$1
+    local phy=$2
+    uci -q batch <<-EOF >/dev/null
+        set wireless.$iface.ssid=Lunatic_5G_2_$(cat /sys/class/ieee80211/$phy/macaddress | sed 's/.[0-9A-Fa-f]:.[0-9A-Fa-f]:.[0-9A-Fa-f]:\(.[0-9A-Fa-f]\):\(.[0-9A-Fa-f]\):\(.[0-9A-Fa-f]\)/\1\2\3/g' | tr :[a-z] :[A-Z])
+        commit
+    EOF
+}
+
+# 根据 RADIO_NUM 判断设置 2.4G 和 5G 名称
+if [ "$RADIO_NUM" -eq 1 ]; then
+    # 只有 2.4G
+    if [ "$2G_BAND" = "radio0" ]; then
+        set_2g_name wifi-iface[0] phy0
+    elif [ "$2G_BAND" = "radio1" ]; then
+        set_2g_name wifi-iface[1] phy1
+    else
+        echo "未找到有效的2G无线设备"
+        exit 1
+    fi
+elif [ "$RADIO_NUM" -eq 2 ]; then
+    # 同时设置 2.4G 和 5G
+    if [ "$2G_BAND" = "radio0" ]; then
+        set_2g_name wifi-iface[0] phy0
+        if [ "$5G_BAND" = "radio1" ]; then
+            set_5g_name wifi-iface[1] phy1
+        else
+            echo "未找到有效的5G无线设备"
+            exit 1
+        fi
+    elif [ "$2G_BAND" = "radio1" ]; then
+        set_2g_name wifi-iface[1] phy1
+        if [ "$5G_BAND" = "radio0" ]; then
+            set_5g_name wifi-iface[0] phy0
+        else
+            echo "未找到有效的5G无线设备"
+            exit 1
+        fi
+    else
+        echo "未找到有效的2G无线设备"
+        exit 1
+    fi
+elif [ "$RADIO_NUM" -eq 3 ]; then
+    # 同时设置 2.4G 和 5G（第二个5G设备）
+    if [ "$2G_BAND" = "radio0" ]; then
+        set_2g_name wifi-iface[0] phy0
+        if [ "$5G_BAND" = "radio1" ]; then
+            set_5g_name wifi-iface[1] phy1
+        elif [ "$5G_BAND_2" = "radio2" ]; then
+            set_5g_2_name wifi-iface[2] phy2
+        else
+            echo "未找到有效的5G无线设备"
+            exit 1
+        fi
+    elif [ "$2G_BAND" = "radio1" ]; then
+        set_2g_name wifi-iface[1] phy1
+        if [ "$5G_BAND" = "radio0" ]; then
+            set_5g_name wifi-iface[0] phy0
+        elif [ "$5G_BAND_2" = "radio2" ]; then
+            set_5g_2_name wifi-iface[2] phy2
+        else
+            echo "未找到有效的5G无线设备"
+            exit 1
+        fi
+    elif [ "$2G_BAND" = "radio2" ]; then
+        set_2g_name wifi-iface[2] phy2
+        if [ "$5G_BAND" = "radio0" ]; then
+            set_5g_name wifi-iface[0] phy0
+        elif [ "$5G_BAND_2" = "radio1" ]; then
+            set_5g_2_name wifi-iface[1] phy1
+        else
+            echo "未找到有效的5G无线设备"
+            exit 1
+        fi
+    else
+        echo "未找到有效的2G无线设备"
+        exit 1
+    fi
+else
+    echo "无线设备数量不符合预期：$RADIO_NUM"
+    exit 1
+fi
+
+
+
+
+
+uci -q batch <<-EOF >/dev/null
+	set wireless.$2G_BAND.country='US'
+	set wireless.$5G_BAND.country='CN'
+	set wireless.$5G_BAND_2.country='CN'
+	set wireless.@wifi-device[0].disabled=0
+	set wireless.@wifi-device[1].disabled=0
+	set wireless.@wifi-device[2].disabled=0
+	set wireless.@wifi-iface[0].wpa_disable_eapol_key_retries='1'
+	set wireless.@wifi-iface[1].wpa_disable_eapol_key_retries='1'
+	set wireless.@wifi-iface[0].ieee80211k='1'
+	set wireless.@wifi-iface[0].ieee80211v='1'
+	set wireless.@wifi-iface[0].time_advertisement='2'
+	set wireless.@wifi-iface[1].ieee80211k='1'
+	set wireless.@wifi-iface[1].ieee80211v='1'
+	set wireless.@wifi-iface[1].time_advertisement='2'
+	commit
+EOF
+
+
+
+
+
+
+
+
+uci -q batch <<-EOF >/dev/null
+	set luci.main.lang=zh_cn
+	set system.@system[0].hostname=Lunatic_IPQ
+	set system.@system[0].timezone=CST-8
+	set system.@system[0].zonename=Asia/Shanghai
+	set fstab.@global[0].anon_mount=1
+	set dropbear.@dropbear[0].Interface='lan'
+	set network.lan.ipaddr=192.168.10.1
+	add_list umdns.@umdns[0].network='wan'
+	add_list system.ntp.server='ntp.tencent.com'
+	add_list system.ntp.server='ntp1.aliyun.com'
+	del_list uhttpd.main.listen_https='0.0.0.0:443'
+	del_list uhttpd.main.listen_https='[::]:443'
+	set network.@device[0].packet_steering=0
+	set network.@device[0].flow_offloading=0
+	set network.@device[0].flow_offloading_hw=0
+	commit
+EOF
+
+sed -i '/DISTRIB_DESCRIPTION/d' /etc/openwrt_release
+
+/etc/init.d/advancedplus stop
+/etc/init.d/advancedplus disable
+/etc/init.d/qos_gargoyle disable
+/etc/init.d/umdns stop
+/etc/init.d/umdns disable
+/etc/init.d/dawn stop
+/etc/init.d/dawn disable
+/etc/init.d/https-dns-proxy stop
+/etc/init.d/https-dns-proxy disable
+
+
+
+
+
+
+
+
+
+
+
+
+exit 0
