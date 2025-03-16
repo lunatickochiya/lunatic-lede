@@ -80,7 +80,7 @@ Package/ath10k-firmware-qca99x0 = $(call Package/firmware-default,ath10k qca99x0
 define Package/ath10k-firmware-qca99x0/install
 	$(INSTALL_DIR) $(1)/lib/firmware/ath10k/QCA99X0/hw2.0
 	$(INSTALL_DATA) \
-		$(DL_DIR)/$(QCA99X0_BOARD_FILE) \
+		$(PKG_BUILD_DIR)/ath10k/QCA99X0/hw2.0/board-2.bin \
 		$(1)/lib/firmware/ath10k/QCA99X0/hw2.0/board-2.bin
 	$(INSTALL_DATA) \
 		$(PKG_BUILD_DIR)/ath10k/QCA99X0/hw2.0/board.bin \
