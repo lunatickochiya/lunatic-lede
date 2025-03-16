@@ -64,9 +64,6 @@ endef
 define Package/b43legacy-firmware/install
 	$(INSTALL_DIR) $(1)/lib/firmware
 	b43-fwcutter --unsupported -w $(1)/lib/firmware/ $(DL_DIR)/$(PKG_SOURCE)
-  ifneq ($(CONFIG_B43LEGACY_FW_SQUASH),)
-	b43-fwsquash.py "G" "$(CONFIG_B43LEGACY_FW_SQUASH_COREREVS)" "$(1)/lib/firmware/b43legacy"
-  endif
 endef
 
 $(eval $(call BuildPackage,b43legacy-firmware))
