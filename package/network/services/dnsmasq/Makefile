@@ -55,7 +55,6 @@ $(call Package/dnsmasq/Default)
   TITLE += (with DHCPv6 support)
   DEPENDS+=@IPV6
   VARIANT:=dhcpv6
-  PROVIDES:=dnsmasq
 endef
 
 define Package/dnsmasq-full
@@ -65,7 +64,6 @@ $(call Package/dnsmasq/Default)
 	+PACKAGE_dnsmasq_full_ipset:kmod-ipt-ipset \
 	+PACKAGE_dnsmasq_full_conntrack:libnetfilter-conntrack
   VARIANT:=full
-  PROVIDES:=dnsmasq
 endef
 
 define Package/dnsmasq/description
