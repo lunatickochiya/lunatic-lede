@@ -32,3 +32,4 @@ git-src
 *.kate-swp
 *.tar.gz
 .config-*
+/package/kochiya/autoset
