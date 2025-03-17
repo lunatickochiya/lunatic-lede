@@ -50,7 +50,7 @@ define Package/openvpn-easy-rsa/install
 	$(INSTALL_DIR) $(1)/etc/easy-rsa
 	$(INSTALL_DATA) $(PKG_BUILD_DIR)/openssl-easyrsa.cnf $(1)/etc/easy-rsa/openssl-1.0.cnf
 	$(LN) /etc/easy-rsa/openssl-1.0.cnf $(1)/etc/easy-rsa/openssl-easyrsa.cnf
-	$(INSTALL_DATA) $(PKG_BUILD_DIR)/vars.example $(1)/etc/easy-rsa/vars
+	#$(INSTALL_DATA) $(PKG_BUILD_DIR)/vars.example $(1)/etc/easy-rsa/vars
 
 	$(INSTALL_DIR) $(1)/etc/easy-rsa/pki
 	chmod 700 $(1)/etc/easy-rsa/pki
