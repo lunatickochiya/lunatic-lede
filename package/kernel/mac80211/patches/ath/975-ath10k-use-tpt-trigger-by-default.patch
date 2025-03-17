@@ -32,7 +32,7 @@ Signed-off-by: Mathias Kresin <dev@kresin.me>
 @@ -81,9 +81,7 @@ int ath10k_leds_register(struct ath10k *
  
  	ar->leds.cdev.name = ar->leds.label;
- 	ar->leds.cdev.brightness_set_blocking = ath10k_leds_set_brightness_blocking;
+ 	ar->leds.cdev.brightness_set_sync = ath10k_leds_set_brightness_blocking;
 -
 -	/* FIXME: this assignment doesn't make sense as it's NULL, remove it? */
 -	ar->leds.cdev.default_trigger = ar->leds.wifi_led.default_trigger;
