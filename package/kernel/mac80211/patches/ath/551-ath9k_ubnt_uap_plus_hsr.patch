@@ -1,26 +1,27 @@
 --- a/drivers/net/wireless/ath/ath9k/channel.c
 +++ b/drivers/net/wireless/ath/ath9k/channel.c
-@@ -15,6 +15,7 @@
+@@ -15,6 +15,8 @@
   */
  
  #include "ath9k.h"
++#include <linux/ath9k_platform.h>
 +#include "hsr.h"
  
  /* Set/change channels.  If the channel is really being changed, it's done
   * by reseting the chip.  To accomplish this we must first cleanup any pending
-@@ -22,6 +23,7 @@
+@@ -22,6 +24,7 @@
   */
  static int ath_set_channel(struct ath_softc *sc)
  {
-+	struct device_node *np = sc->dev->of_node;
++	struct ath9k_platform_data *pdata = sc->dev->platform_data;
  	struct ath_hw *ah = sc->sc_ah;
  	struct ath_common *common = ath9k_hw_common(ah);
  	struct ieee80211_hw *hw = sc->hw;
-@@ -42,6 +44,11 @@ static int ath_set_channel(struct ath_so
+@@ -42,6 +45,11 @@ static int ath_set_channel(struct ath_so
  	ath_dbg(common, CONFIG, "Set channel: %d MHz width: %d\n",
  		chan->center_freq, chandef->width);
  
-+	if (of_property_read_bool(np, "ubnt,hsr")) {
++	if (pdata && pdata->ubnt_hsr) {
 +		ath9k_hsr_enable(ah, chandef->width, chan->center_freq);
 +		ath9k_hsr_status(ah);
 +	}
@@ -331,27 +332,30 @@
 +#endif /* HSR_H */
 --- a/drivers/net/wireless/ath/ath9k/main.c
 +++ b/drivers/net/wireless/ath/ath9k/main.c
-@@ -18,6 +18,7 @@
+@@ -16,8 +16,10 @@
+ 
+ #include <linux/nl80211.h>
  #include <linux/delay.h>
++#include <linux/ath9k_platform.h>
  #include "ath9k.h"
  #include "btcoex.h"
 +#include "hsr.h"
  
- static void ath9k_flush(struct ieee80211_hw *hw, struct ieee80211_vif *vif,
- 			u32 queues, bool drop);
-@@ -657,6 +658,7 @@ void ath_reset_work(struct work_struct *
+ u8 ath9k_parse_mpdudensity(u8 mpdudensity)
+ {
+@@ -654,6 +656,7 @@ void ath_reset_work(struct work_struct *
  static int ath9k_start(struct ieee80211_hw *hw)
  {
  	struct ath_softc *sc = hw->priv;
-+	struct device_node *np = sc->dev->of_node;
++	struct ath9k_platform_data *pdata = sc->dev->platform_data;
  	struct ath_hw *ah = sc->sc_ah;
  	struct ath_common *common = ath9k_hw_common(ah);
  	struct ieee80211_channel *curchan = sc->cur_chan->chandef.chan;
-@@ -735,6 +737,11 @@ static int ath9k_start(struct ieee80211_
+@@ -732,6 +735,11 @@ static int ath9k_start(struct ieee80211_
  					  AR_GPIO_OUTPUT_MUX_AS_OUTPUT);
  	}
  
-+	if (of_property_read_bool(np, "ubnt,hsr")) {
++	if (pdata && pdata->ubnt_hsr) {
 +		ath9k_hsr_init(ah);
 +		ath9k_hsr_disable(ah);
 +	}
@@ -369,19 +373,30 @@
  
  ath9k-$(CPTCFG_ATH9K_DEBUGFS) += debug.o
  
+--- a/include/linux/ath9k_platform.h
++++ b/include/linux/ath9k_platform.h
+@@ -53,6 +53,8 @@ struct ath9k_platform_data {
+ 	unsigned num_btns;
+ 	const struct gpio_keys_button *btns;
+ 	unsigned btn_poll_interval;
++
++	bool ubnt_hsr;
+ };
+ 
+ #endif /* _LINUX_ATH9K_PLATFORM_H */
 --- a/local-symbols
 +++ b/local-symbols
-@@ -112,6 +112,7 @@ ATH9K_WOW=
+@@ -110,6 +110,7 @@ ATH9K_WOW=
  ATH9K_RFKILL=
  ATH9K_CHANNEL_CONTEXT=
  ATH9K_PCOEM=
 +ATH9K_UBNTHSR=
- ATH9K_PCI_NO_EEPROM=
  ATH9K_HTC=
  ATH9K_HTC_DEBUGFS=
+ ATH9K_HWRNG=
 --- a/drivers/net/wireless/ath/ath9k/Kconfig
 +++ b/drivers/net/wireless/ath/ath9k/Kconfig
-@@ -58,6 +58,19 @@ config ATH9K_AHB
+@@ -59,6 +59,19 @@ config ATH9K_AHB
  	  Say Y, if you have a SoC with a compatible built-in
  	  wireless MAC. Say N if unsure.
  
