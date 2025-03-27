@@ -214,7 +214,6 @@ platform_check_image() {
 	ap121f|\
 	ap132|\
 	ap90q|\
-	csac|\
 	bullet-m|\
 	c-55|\
 	carambola2|\
@@ -307,6 +306,7 @@ platform_check_image() {
 	ap136-020|\
 	ap147-010|\
 	ap152|\
+	csac|\
 	ap96|\
 	arduino-yun|\
 	bhr-4grv2|\
