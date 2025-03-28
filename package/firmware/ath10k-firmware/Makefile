@@ -35,10 +35,10 @@ $(Package/ath10k-firmware-default)
   TITLE:=ath10k firmware for QCA9887 devices
 endef
 
-#define Package/ath10k-firmware-qca9888
-#$(Package/ath10k-firmware-default)
-#  TITLE:=ath10k firmware for QCA9888 devices
-#endef
+define Package/ath10k-firmware-qca9888
+$(Package/ath10k-firmware-default)
+  TITLE:=ath10k firmware for QCA9888 devices
+endef
 
 define Package/ath10k-firmware-qca988x
 $(Package/ath10k-firmware-default)
@@ -81,9 +81,6 @@ $(Package/ath10k-firmware-default)
   CATEGORY:=Firmware
 endef
 
-QCA99X0_BOARD_REV:=ddcec9efd245da9365c474f513a855a55f3ac7fe
-QCA99X0_BOARD_FILE:=board-2.bin.$(QCA99X0_BOARD_REV)
-
 define Build/Compile
 
 endef
@@ -108,15 +105,15 @@ define Package/ath10k-firmware-qca9887/install
 		$(1)/lib/firmware/ath10k/QCA9887/hw1.0/board.bin
 endef
 
-#define Package/ath10k-firmware-qca9888/install
-#	$(INSTALL_DIR) $(1)/lib/firmware/ath10k/QCA9888/hw2.0
-#	$(INSTALL_DATA) \
-#		$(PKG_BUILD_DIR)/QCA9888/hw2.0/board-2.bin \
-#		$(1)/lib/firmware/ath10k/QCA9888/hw2.0/board-2.bin
-#	$(INSTALL_DATA) \
-#		$(PKG_BUILD_DIR)/QCA9888/hw2.0/3.5.3/firmware-5.bin_10.4-3.5.3-00053 \
-#		$(1)/lib/firmware/ath10k/QCA9888/hw2.0/firmware-5.bin
-#endef
+define Package/ath10k-firmware-qca9888/install
+	$(INSTALL_DIR) $(1)/lib/firmware/ath10k/QCA9888/hw2.0
+	$(INSTALL_DATA) \
+		$(PKG_BUILD_DIR)/QCA9888/hw2.0/board-2.bin \
+		$(1)/lib/firmware/ath10k/QCA9888/hw2.0/board-2.bin
+	$(INSTALL_DATA) \
+		$(PKG_BUILD_DIR)/QCA9888/hw2.0/3.9.0.2/firmware-5.bin_10.4-3.9.0.2-00157 \
+		$(1)/lib/firmware/ath10k/QCA9888/hw2.0/firmware-5.bin
+endef
 
 define Package/ath10k-firmware-qca988x/install
 	$(INSTALL_DIR) $(1)/lib/firmware/ath10k/QCA988X/hw2.0
@@ -164,14 +161,14 @@ define Package/ath10k-firmware-qca9984/install
 		$(PKG_BUILD_DIR)/QCA9984/hw1.0/board-2.bin \
 		$(1)/lib/firmware/ath10k/QCA9984/hw1.0/board-2.bin
 	$(INSTALL_DATA) \
-		$(PKG_BUILD_DIR)/QCA9984/hw1.0/3.5.3/firmware-5.bin_10.4-3.5.3-00053 \
+		$(PKG_BUILD_DIR)/QCA9984/hw1.0/3.9.0.2/firmware-5.bin_10.4-3.9.0.2-00157 \
 		$(1)/lib/firmware/ath10k/QCA9984/hw1.0/firmware-5.bin
 endef
 
 $(eval $(call BuildPackage,ath10k-firmware-qca9887))
-#$(eval $(call BuildPackage,ath10k-firmware-qca9888))
+$(eval $(call BuildPackage,ath10k-firmware-qca9888))
 $(eval $(call BuildPackage,ath10k-firmware-qca988x))
-#$(eval $(call BuildPackage,ath10k-firmware-qca99x0))
-#$(eval $(call BuildPackage,ath10k-firmware-qca6174))
-#$(eval $(call BuildPackage,ath10k-firmware-qca9984))
-#$(eval $(call BuildPackage,ath10k-firmware-qca4019))
+$(eval $(call BuildPackage,ath10k-firmware-qca99x0))
+$(eval $(call BuildPackage,ath10k-firmware-qca6174))
+$(eval $(call BuildPackage,ath10k-firmware-qca9984))
+$(eval $(call BuildPackage,ath10k-firmware-qca4019))
