@@ -8,17 +8,20 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=ath10k-firmware
-PKG_SOURCE_DATE:=2019-10-03
-PKG_SOURCE_VERSION:=d622d160e9f552ead68d9ae81b715422892dc2ef
-PKG_MIRROR_HASH:=2e504e071c3f896d629c4cfffe7ff4b5f1acdb4fecd3f01e8ff8c73e87a67cc7
+PKG_SOURCE_DATE:=2023-12-07
+PKG_SOURCE_VERSION:=2b7714434fe984bc4b0a3c629277197eac724d41
+PKG_MIRROR_HASH:=7ad7cbe78fff3a84dc9df18292bf4126b4668cb5e30d82ef7eae154be7f83407
 PKG_RELEASE:=1
 
 PKG_SOURCE_PROTO:=git
-PKG_SOURCE_URL:=https://github.com/kvalo/ath10k-firmware.git
+PKG_SOURCE_URL:=https://git.codelinaro.org/clo/ath-firmware/ath10k-firmware
 
 PKG_MAINTAINER:=Felix Fietkau <nbd@nbd.name>
 
 include $(INCLUDE_DIR)/package.mk
+
+RSTRIP:=:
+STRIP:=:
 
 define Package/ath10k-firmware-default
   SECTION:=firmware
@@ -80,14 +83,6 @@ endef
 
 QCA99X0_BOARD_REV:=ddcec9efd245da9365c474f513a855a55f3ac7fe
 QCA99X0_BOARD_FILE:=board-2.bin.$(QCA99X0_BOARD_REV)
-
-define Download/qca99x0-board
-  URL:=https://source.codeaurora.org/quic/qsdk/oss/firmware/ath10k-firmware/plain/ath10k/QCA99X0/hw2.0
-  URL_FILE:=board-2.bin?id=$(QCA99X0_BOARD_REV)
-  FILE:=$(QCA99X0_BOARD_FILE)
-  HASH:=03711ac21e60ef59d3815e235eb721c0c22851b5410299411085aa6f2af45401
-endef
-$(eval $(call Download,qca99x0-board))
 
 define Build/Compile
 
@@ -153,7 +148,7 @@ endef
 define Package/ath10k-firmware-qca99x0/install
 	$(INSTALL_DIR) $(1)/lib/firmware/ath10k/QCA99X0/hw2.0
 	$(INSTALL_DATA) \
-		$(DL_DIR)/$(QCA99X0_BOARD_FILE) \
+		$(PKG_BUILD_DIR)/QCA99X0/hw2.0/board-2.bin \
 		$(1)/lib/firmware/ath10k/QCA99X0/hw2.0/board-2.bin
 	$(INSTALL_DATA) \
 		$(PKG_BUILD_DIR)/QCA99X0/hw2.0/boardData_AR900B_CUS239_5G_v2_001.bin \
