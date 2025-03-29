@@ -14,7 +14,7 @@ define KernelPackage/net-prism54
   KCONFIG:=CONFIG_PRISM54
   FILES:= \
 	$(LINUX_DIR)/drivers/net/wireless/prism54/prism54.ko@lt4.5 \
-	$(LINUX_DIR)/drivers/net/wireless/intersil/prism54/prism54.ko@ge4.5
+	$(LINUX_DIR)/drivers/net/wireless/intersil/prism54/prism54.ko@ge4.4.400
   AUTOLOAD:=$(call AutoProbe,prism54)
 endef
 

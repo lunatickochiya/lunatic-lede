@@ -14,6 +14,7 @@ CPU_TYPE:=24kc
 SUBTARGETS:=generic nand mikrotik
 
 KERNEL_PATCHVER:=4.4
+KERNEL_TESTING_PATCHVER := 4.4.302
 
 include $(INCLUDE_DIR)/target.mk
 
