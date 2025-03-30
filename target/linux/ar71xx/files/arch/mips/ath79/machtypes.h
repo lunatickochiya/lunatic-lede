@@ -300,6 +300,7 @@ enum ath79_mach_type {
 	ATH79_Hualu_Wifi_Dock,			/* Hualu-Wifi-Dock */
 	ATH79_MACH_DW33D_WIFI,		/* DomyWifi DW33D WIFI support */
 	ATH79_MACH_TL_WR841N_V8_CN,	/* TP-LINK TL-WR841N/ND v8 CN */
+	ATH79_MACH_PISEN_WPR003N,       /* PISEN-WPR003N */
 };
 
 #endif /* _ATH79_MACHTYPE_H */

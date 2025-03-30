@@ -1013,3 +1013,14 @@ define Device/tl-wa7210n-v2
     CONSOLE := ttyATH0,115200
 endef
 TARGET_DEVICES += tl-wa7210n-v2
+
+define Device/pisen-wpr003n
+    $(Device/tplink-16mlzma)
+    BOARDNAME := PISEN_WPR003N
+    DEVICE_TITLE := PISEN WPR003N
+    DEVICE_PROFILE := PISEN
+    CONSOLE := ttyATH0,115200
+    TPLINK_HWID := 0x30100103
+endef
+TARGET_DEVICES += pisen-wpr003n
+
