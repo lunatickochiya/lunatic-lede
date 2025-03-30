@@ -606,6 +606,9 @@ ar71xx_board_detect() {
 	*"DomyWifi DW33D WIFI")
 		name="dw33d-wifi"
 		;;
+	*"PISEN_WPR003N")
+		name="pisen-wpr003n"
+		;;
 	*E2100L)
 		name="e2100l"
 		;;

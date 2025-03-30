@@ -810,6 +810,9 @@ lunaticbox)
 	ucidef_set_led_netdev "lan" "LAN" "lunaticbox:green:lan" "eth0"
 	ucidef_set_led_wlan "wlan" "WLAN" "lunaticbox:green:wlan" "phy0tpt"
 	;;
+pisen,wpr003n)
+	ucidef_set_led_wlan "wlan" "WLAN" "wpr003n:blue:wlan" "phy0tpt"
+	;;
 esac
 
 board_config_flush

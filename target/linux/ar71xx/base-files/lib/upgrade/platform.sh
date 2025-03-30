@@ -442,6 +442,7 @@ platform_check_image() {
 	tl-wr941nd-v6|\
 	tl-wr940n-v4|\
 	hualu-wifi-dock|\
+	pisen-wpr003n | \
 	tl-wr941nd)
 		local magic_ver="0100"
 
