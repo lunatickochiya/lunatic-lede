@@ -1,0 +1,5 @@
+
+config sfe 'config'
+	option enabled '1'
+	option bridge '0'
+
