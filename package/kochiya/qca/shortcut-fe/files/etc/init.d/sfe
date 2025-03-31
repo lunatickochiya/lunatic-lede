@@ -1,48 +1,65 @@
 #!/bin/sh /etc/rc.common
-#
-# Copyright (c) 2014-2015 The Linux Foundation. All rights reserved.
-# Permission to use, copy, modify, and/or distribute this software for
-# any purpose with or without fee is hereby granted, provided that the
-# above copyright notice and this permission notice appear in all copies.
-# THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
-# WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
-# MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
-# ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
-# WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
-# ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
-# OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
-#
 
-#SFE connection manager has a lower priority, it should be started after other connection manager
-#to detect the existence of connection manager with higher priority
-START=72
+# SFE connection manager has a lower priority, it should be started after other
+# connection manager to detect the existence of connection manager with higher
+# priority
+START=99
 
-have_cm() {
-	[ -d "/sys/kernel/debug/ecm" ] && echo 1 && return
-
-	echo 0
+# load shortcut-fe connection manager
+load_sfe_cm() {
+	modprobe -q fast-classifier || modprobe -q shortcut-fe-cm
 }
 
-#load shortcut-fe connection manager
-load_sfe_cm() {
-	local kernel_version=$(uname -r)
+# unload kernel modules
+unload_kmods() {
+	while [ $# -gt 0 ]; do
+		grep -qw "^$1" /proc/modules && rmmod "$1"
+		shift
+	done
+}
 
-	#shortcut-fe-drv.ko is not needed because other connection manager is not enabled
-	[ -d "/sys/module/shortcut_fe_drv" ] && rmmod shortcut_fe_drv
+unload_sfe() {
+	unload_kmods shortcut_fe_cm fast_classifier shortcut_fe_ipv6 shortcut_fe
+	rm -f /dev/sfe_ipv4 /dev/sfe_ipv6
+}
 
-	[ -e "/lib/modules/$kernel_version/shortcut-fe-cm.ko" ] && {
-		[ -d /sys/module/shortcut_fe_cm ] || insmod /lib/modules/$kernel_version/shortcut-fe-cm.ko
+# load or reload sfe
+load_sfe() {
+	local enabled bridge offload_at_pkts ipv4_dev_num ipv6_dev_num
+	config_load sfe
+	config_get_bool enabled config enabled 0
+	config_get_bool bridge config bridge 0
+	config_get offload_at_pkts config offload_at_pkts 128
+
+	unload_sfe
+
+	[ "$enabled" -eq 1 ] || return
+	[ -d "/sys/kernel/debug/ecm" ] && return
+
+	load_sfe_cm
+
+	grep -qw "^fast_classifier" /proc/modules && {
+		echo "$bridge" >/sys/fast_classifier/skip_to_bridge_ingress
+		echo "$offload_at_pkts" >/sys/fast_classifier/offload_at_pkts
 	}
-	[ -e "/lib/modules/$kernel_version/fast-classifier.ko" ] && {
-		[ -d /sys/module/fast_classifier ] || insmod /lib/modules/$kernel_version/fast-classifier.ko
-	}
+
+	ipv4_dev_num=$(cat /sys/sfe_ipv4/debug_dev)
+	[ -n "$ipv4_dev_num" ] &&
+		mknod /dev/sfe_ipv4 c "$ipv4_dev_num" 0
+
+	ipv6_dev_num=$(cat /sys/sfe_ipv6/debug_dev)
+	[ -n "$ipv6_dev_num" ] &&
+		mknod /dev/sfe_ipv6 c "$ipv6_dev_num" 0
 }
 
 start() {
-	[ "$(have_cm)" = "1" ] || load_sfe_cm
+	load_sfe
 }
 
 stop() {
-	[ -d /sys/module/shortcut_fe_cm ] && rmmod shortcut_fe_cm
-	[ -d /sys/module/fast_classifier ] && rmmod fast_classifier
+	unload_sfe
+}
+
+restart() {
+	start
 }
