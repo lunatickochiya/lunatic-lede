@@ -297,19 +297,21 @@ define Device/psg1218
 endef
 TARGET_DEVICES += psg1218
 
-define Device/y1
+define Device/lenovo_newifi-y1
   DTS := Y1
   IMAGE_SIZE := $(ralink_default_fw_size_16M)
   DEVICE_TITLE := Lenovo Y1
+  DEVICE_PACKAGES := kmod-mt76x2 kmod-usb2 kmod-usb-ohci
 endef
-TARGET_DEVICES += y1
+TARGET_DEVICES += lenovo_newifi-y1
 
-define Device/y1s
+define Device/lenovo_newifi-y1s
   DTS := Y1S
   IMAGE_SIZE := $(ralink_default_fw_size_16M)
   DEVICE_TITLE := Lenovo Y1S
+  DEVICE_PACKAGES := kmod-mt76x2 kmod-usb2 kmod-usb-ohci
 endef
-TARGET_DEVICES += y1s
+TARGET_DEVICES += lenovo_newifi-y1s
 
 define Device/mlw221
   DTS := MLW221

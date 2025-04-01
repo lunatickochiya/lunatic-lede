@@ -614,10 +614,10 @@ ramips_board_detect() {
 		name="x8"
 		;;
 	*"Y1")
-		name="y1"
+		name="lenovo_newifi-y1"
 		;;
 	*"Y1S")
-		name="y1s"
+		name="lenovo_newifi-y1s"
 		;;
 	*"ZBT-APE522II")
 		name="zbt-ape522ii"

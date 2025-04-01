@@ -31,37 +31,37 @@
 		compatible = "gpio-leds";
 
 		power1 {
-			label = "y1s:yellow:power";
+			label = "lenovo_newifi-y1s:yellow:power";
 			gpios = <&gpio0 14 1>;
 		};
 
 		power2 {
-			label = "y1s:blue:power";
+			label = "lenovo_newifi-y1s:blue:power";
 			gpios = <&gpio0 9 1>;
 		};
 
 		wlan1 {
-			label = "y1s:yellow:wifi";
+			label = "lenovo_newifi-y1s:yellow:wifi";
 			gpios = <&gpio3 0 1>;
 		};
 
 		wlan2 {
-			label = "y1s:blue:wifi";
+			label = "lenovo_newifi-y1s:blue:wifi";
 			gpios = <&gpio2 10 1>;
 		};
 
 		usb1 {
-			label = "y1s:yellow:usb";
+			label = "lenovo_newifi-y1s:yellow:usb";
 			gpios = <&gpio2 13 1>;
 		};
 
 		usb2 {
-			label = "y1s:blue:usb";
+			label = "lenovo_newifi-y1s:blue:usb";
 			gpios = <&gpio2 12 1>;
 		};
 
 		internet {
-			label = "y1s:blue:internet";
+			label = "lenovo_newifi-y1s:blue:internet";
 			gpios = <&gpio2 11 1>;
 		};
 	};

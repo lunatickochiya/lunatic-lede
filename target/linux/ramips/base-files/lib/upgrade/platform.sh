@@ -175,8 +175,8 @@ platform_check_image() {
 	wzr-agl300nh|\
 	x5|\
 	x8|\
-	y1|\
-	y1s|\
+	lenovo_newifi-y1|\
+	lenovo_newifi-y1s|\
 	zbt-ape522ii|\
 	zbt-cpe102|\
 	zbt-wa05|\

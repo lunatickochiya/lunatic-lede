@@ -354,13 +354,13 @@ wndr3700v5)
 wt3020)
 	ucidef_set_led_default "power" "power" "$board:blue:power" "0"
 	;;
-y1)
+lenovo_newifi-y1)
 	set_usb_led "$board:blue:usb"
 	ucidef_set_led_netdev "wifi" "WIFI" "$board:blue:wifi" "wlan1"
 	ucidef_set_led_netdev "wifi5g" "WIFI5G" "$board:blue:wifi5g" "wlan0"
 	ucidef_set_led_switch "lan" "LAN" "$board:blue:lan" "switch0" "0x03"
 	;;
-y1s)
+lenovo_newifi-y1s)
 	set_usb_led "$board:blue:usb"
 	ucidef_set_led_netdev "wifi" "WIFI" "$board:yellow:wifi" "wlan1"
 	ucidef_set_led_netdev "wifi5g" "WIFI5G" "$board:blue:wifi" "wlan0"

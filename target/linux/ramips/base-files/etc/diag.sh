@@ -123,8 +123,8 @@ get_status_led() {
 	wl-330n3g|\
 	wli-tx4-ag300n|\
 	wt3020|\
-	y1|\
-	y1s|\
+	lenovo_newifi-y1|\
+	lenovo_newifi-y1s|\
 	youku-yk1)
 		status_led="$board:blue:power"
 		;;
