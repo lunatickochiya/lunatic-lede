@@ -213,7 +213,7 @@ ramips_setup_interfaces()
 			"0:lan" "1:lan" "2:lan" "3:lan" "4:wan" "6@eth0"
 		;;
 	hc5*61|\
-	y1s)
+	lenovo_newifi-y1s)
 		ucidef_add_switch "switch0" \
 			"1:lan" "2:lan" "3:lan" "4:lan" "5:lan" "0:wan" "6@eth0"
 		;;
@@ -282,7 +282,7 @@ ramips_setup_interfaces()
 		ucidef_add_switch "switch0" \
 			"1:lan" "2:lan" "0:wan" "6@eth0"
 		;;
-	y1)
+	lenovo_newifi-y1)
 		ucidef_add_switch "switch0" \
 			"0:lan:2" "1:lan:1" "4:wan" "6@eth0"
 		;;
@@ -335,8 +335,8 @@ ramips_setup_macs()
 	mpr-a1|\
 	psr-680w|\
 	sl-r7205|\
-	y1|\
-	y1s)
+	lenovo_newifi-y1|\
+	lenovo_newifi-y1s)
 		lan_mac=$(cat /sys/class/net/eth0/address)
 		lan_mac=$(macaddr_setbit_la "$lan_mac")
 		wan_mac=$(macaddr_add "$lan_mac" 1)

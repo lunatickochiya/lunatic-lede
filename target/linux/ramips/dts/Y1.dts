@@ -10,32 +10,32 @@
 		compatible = "gpio-leds";
 
 		power1 {
-			label = "y1:blue:power";
+			label = "lenovo_newifi-y1:blue:power";
 			gpios = <&gpio0 9 1>;
 		};
 
 		wlan1 {
-			label = "y1:blue:wifi";
+			label = "lenovo_newifi-y1:blue:wifi";
 			gpios = <&gpio3 0 1>;
 		};
 
 		wlan2 {
-			label = "y1:blue:wifi5g";
+			label = "lenovo_newifi-y1:blue:wifi5g";
 			gpios = <&gpio2 10 1>;
 		};
 
 		usb {
-			label = "y1:blue:usb";
+			label = "lenovo_newifi-y1:blue:usb";
 			gpios = <&gpio2 12 1>;
 		};
 
 		lan {
-			label = "y1:blue:lan";
+			label = "lenovo_newifi-y1:blue:lan";
 			gpios = <&gpio2 15 1>;
 		};
 
 		internet {
-			label = "y1:blue:internet";
+			label = "lenovo_newifi-y1:blue:internet";
 			gpios = <&gpio2 11 1>;
 		};
 	};
