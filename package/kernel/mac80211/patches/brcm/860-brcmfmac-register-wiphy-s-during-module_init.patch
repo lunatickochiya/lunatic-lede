@@ -11,9 +11,19 @@ module loads successfully.
 Signed-off-by: Rafał Miłecki <zajec5@gmail.com>
 ---
 
+--- a/drivers/net/wireless/broadcom/brcm80211/brcmfmac/core.c
++++ b/drivers/net/wireless/broadcom/brcm80211/brcmfmac/core.c
+@@ -1554,6 +1554,7 @@ int __init brcmf_core_init(void)
+ {
+ 	if (!schedule_work(&brcmf_driver_work))
+ 		return -EBUSY;
++	flush_work(&brcmf_driver_work);
+ 
+ 	return 0;
+ }
 --- a/drivers/net/wireless/broadcom/brcm80211/brcmfmac/firmware.c
 +++ b/drivers/net/wireless/broadcom/brcm80211/brcmfmac/firmware.c
-@@ -433,6 +433,7 @@ struct brcmf_fw {
+@@ -431,6 +431,7 @@ struct brcmf_fw {
  	struct brcmf_fw_request *req;
  	u32 curpos;
  	void (*done)(struct device *dev, int err, struct brcmf_fw_request *req);
@@ -21,7 +31,7 @@ Signed-off-by: Rafał Miłecki <zajec5@gmail.com>
  };
  
  static void brcmf_fw_request_done(const struct firmware *fw, void *ctx);
-@@ -640,6 +641,8 @@ static void brcmf_fw_request_done(const
+@@ -638,6 +639,8 @@ static void brcmf_fw_request_done(const
  		fwctx->req = NULL;
  	}
  	fwctx->done(fwctx->dev, ret, fwctx->req);
@@ -30,7 +40,7 @@ Signed-off-by: Rafał Miłecki <zajec5@gmail.com>
  	kfree(fwctx);
  }
  
-@@ -664,6 +667,8 @@ int brcmf_fw_get_firmwares(struct device
+@@ -662,6 +665,8 @@ int brcmf_fw_get_firmwares(struct device
  {
  	struct brcmf_fw_item *first = &req->items[0];
  	struct brcmf_fw *fwctx;
@@ -39,7 +49,7 @@ Signed-off-by: Rafał Miłecki <zajec5@gmail.com>
  	int ret;
  
  	brcmf_dbg(TRACE, "enter: dev=%s\n", dev_name(dev));
-@@ -680,6 +685,9 @@ int brcmf_fw_get_firmwares(struct device
+@@ -678,6 +683,9 @@ int brcmf_fw_get_firmwares(struct device
  	fwctx->dev = dev;
  	fwctx->req = req;
  	fwctx->done = fw_cb;
@@ -49,7 +59,7 @@ Signed-off-by: Rafał Miłecki <zajec5@gmail.com>
  
  	ret = request_firmware_nowait(THIS_MODULE, true, first->path,
  				      fwctx->dev, GFP_KERNEL, fwctx,
-@@ -687,6 +695,12 @@ int brcmf_fw_get_firmwares(struct device
+@@ -685,6 +693,12 @@ int brcmf_fw_get_firmwares(struct device
  	if (ret < 0)
  		brcmf_fw_request_done(NULL, fwctx);
  
