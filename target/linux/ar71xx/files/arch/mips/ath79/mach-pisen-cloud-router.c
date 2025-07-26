@@ -160,5 +160,5 @@ static void __init tl_wr841n_v8_cn_setup(void)
 	ath79_register_usb();
 }
 
-MIPS_MACHINE(ATH79_MACH_TL_WR841N_V8_CN, "TL-WR841N-v8-CN", "Pisen Cloud Router",
+MIPS_MACHINE(ATH79_MACH_PISEN_CLOUD_ROUTER, "Pisen-Cloud-Router", "Pisen Cloud Router",
 	     tl_wr841n_v8_cn_setup);

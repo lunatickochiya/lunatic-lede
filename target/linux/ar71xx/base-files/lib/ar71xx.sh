@@ -1257,7 +1257,7 @@ ar71xx_board_detect() {
 		name="hualu-wifi-dock"
 		;;
 	*"Pisen Cloud Router")
-		name="tl-wr841n-v8-cn"
+		name="pisen-cloud-router"
 		;;
 	esac
 
