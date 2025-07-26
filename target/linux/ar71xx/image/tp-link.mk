@@ -719,15 +719,6 @@ define Device/tl-wr847n-v8
 endef
 TARGET_DEVICES += tl-wr841-v1.5 tl-wr841-v3 tl-wr841-v5 tl-wr841-v7 tl-wr841-v8 tl-wr841-v9 tl-wr841-v10 tl-wr841-v11 tl-wr841-v12 tl-wr842n-v1 tl-wr842n-v2 tl-wr842n-v3 tl-wr843nd-v1 tl-wr847n-v8
 
-define Device/tl-wr841n-v8-cn
-    $(Device/tplink-16mlzma)
-    DEVICE_TITLE := Pisen Cloud Router
-    BOARDNAME := TL-WR841N-v8-CN
-    DEVICE_PROFILE := PISEN
-    TPLINK_HWID := 0x08410008
-endef
-TARGET_DEVICES += tl-wr841n-v8-cn
-
 define Device/tl-wr941nd-v2
     $(Device/tplink-4m)
     DEVICE_TITLE := TP-LINK TL-WR941N/ND v2
@@ -1024,3 +1015,12 @@ define Device/pisen-wpr003n
 endef
 TARGET_DEVICES += pisen-wpr003n
 
+define Device/pisen-cloud-router
+    $(Device/tplink-16mlzma)
+    DEVICE_TITLE := Pisen Cloud Router
+    BOARDNAME := Pisen-Cloud-Router
+    DEVICE_PROFILE := PISEN
+    CONSOLE := ttyATH0,115200
+    TPLINK_HWID := 0x08410008
+endef
+TARGET_DEVICES += pisen-cloud-router
