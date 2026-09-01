@@ -99,6 +99,9 @@ get_status_led() {
 	wrh-300cr)
 		status_led="$board:green:wps"
 		;;
+	raisecom-msg1500-x-00)
+		status_led="$board:blue:usb"
+		;;
 	cf-wr800n|\
 	psg1208)
 		status_led="$board:white:wps"

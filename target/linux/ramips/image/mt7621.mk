@@ -128,6 +128,20 @@ define Device/re6500
 endef
 TARGET_DEVICES += re6500
 
+define Device/raisecom-msg1500-x-00
+  DTS := RAISECOM-MSG1500-X-00
+  BLOCKSIZE := 128k
+  PAGESIZE := 2048
+  FILESYSTEMS := squashfs
+  KERNEL_SIZE := 4096k
+  IMAGE_SIZE := 129280k
+  UBINIZE_OPTS := -E 5
+  IMAGE/sysupgrade.bin := sysupgrade-tar | append-metadata
+  DEVICE_TITLE := RAISECOM MSG1500 X.00
+  DEVICE_PACKAGES := kmod-mt7615e kmod-usb3 kmod-usb-ledtrig-usbport uboot-envtools
+endef
+TARGET_DEVICES += raisecom-msg1500-x-00
+
 define Device/sap-g3200u3
   DTS := SAP-G3200U3
   DEVICE_TITLE := STORYLiNK SAP-G3200U3

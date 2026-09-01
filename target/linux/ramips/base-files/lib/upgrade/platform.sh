@@ -241,6 +241,10 @@ platform_check_image() {
 		nand_do_platform_check "$board" "$1"
 		return $?;
 		;;
+	raisecom-msg1500-x-00)
+		nand_do_platform_check "$board" "$1"
+		return $?;
+		;;
 	esac
 
 	echo "Sysupgrade is not yet supported on $board."
@@ -261,7 +265,8 @@ platform_pre_upgrade() {
 	local board=$(ramips_board_name)
 
 	case "$board" in
-    	ubnt-erx)
+	ubnt-erx|\
+	raisecom-msg1500-x-00)
 		nand_do_upgrade "$ARGV"
 		;;
 	esac

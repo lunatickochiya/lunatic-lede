@@ -93,6 +93,7 @@ ramips_setup_interfaces()
 	pbr-m1|\
 	psg1208|\
 	psg1218|\
+	raisecom-msg1500-x-00|\
 	sap-g3200u3|\
 	sk-wb8|\
 	vr500|\
@@ -393,6 +394,10 @@ ramips_setup_macs()
 	newifi-d1)
 		lan_mac=$(cat /sys/class/net/eth0/address)
 		lan_mac=$(macaddr_add "$lan_mac" 2)
+		;;
+	raisecom-msg1500-x-00)
+		lan_mac=$(mtd_get_mac_ascii Config protest_lan_mac)
+		wan_mac=$(mtd_get_mac_ascii Config protest_wan_mac)
 		;;
 	omega2|\
 	omega2p)

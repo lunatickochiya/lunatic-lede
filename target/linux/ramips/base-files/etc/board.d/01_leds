@@ -104,6 +104,12 @@ cy-swr1100)
 	ucidef_set_led_default "wps" "WPS" "$board:blue:wps" "0"
 	set_usb_led "$board:blue:usb"
 	;;
+
+raisecom-msg1500-x-00)
+	ucidef_set_led_wlan "wlan2g" "WLAN2G" "$board:blue:wlan2g" "phy0radio"
+	ucidef_set_led_wlan "wlan5g" "WLAN5G" "$board:blue:wlan5g" "phy1radio"
+	set_usb_led "$board:blue:usb" "2-1"
+	;;
 d105)
 	ucidef_set_led_default "power" "POWER" "$board:red:power" "1"
 	set_usb_led "$board:green:usb"

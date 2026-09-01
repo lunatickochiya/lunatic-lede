@@ -439,6 +439,9 @@ ramips_board_detect() {
 	*"RT-N56U")
 		name="rt-n56u"
 		;;
+	*"RAISECOM MSG1500 X.00")
+		name="raisecom-msg1500-x-00"
+		;;
 	*"RUT5XX")
 		name="rut5xx"
 		;;
